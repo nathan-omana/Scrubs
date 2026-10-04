@@ -1,0 +1,100 @@
+[
+ {
+  "start": 32,
+  "end": 46,
+  "label": "Person",
+  "tier": "high",
+  "text": "Leilani Kahale"
+ },
+ {
+  "start": 54,
+  "end": 64,
+  "label": "Date",
+  "tier": "med",
+  "text": "1988-11-02"
+ },
+ {
+  "start": 72,
+  "end": 84,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9616 987 169"
+ },
+ {
+  "start": 96,
+  "end": 124,
+  "label": "Clinical term",
+  "tier": "low",
+  "text": "laparoscopic cholecystectomy"
+ },
+ {
+  "start": 128,
+  "end": 141,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 16, 2026"
+ },
+ {
+  "start": 150,
+  "end": 160,
+  "label": "Drug",
+  "tier": "low",
+  "text": "enoxaparin"
+ },
+ {
+  "start": 161,
+  "end": 187,
+  "label": "Dose",
+  "tier": "low",
+  "text": "40 mg SC daily for 10 days"
+ },
+ {
+  "start": 191,
+  "end": 204,
+  "label": "Drug",
+  "tier": "low",
+  "text": "acetaminophen"
+ },
+ {
+  "start": 205,
+  "end": 219,
+  "label": "Dose",
+  "tier": "low",
+  "text": "1 g PO QID PRN"
+ },
+ {
+  "start": 223,
+  "end": 232,
+  "label": "Drug",
+  "tier": "low",
+  "text": "oxycodone"
+ },
+ {
+  "start": 233,
+  "end": 260,
+  "label": "Dose",
+  "tier": "low",
+  "text": "5 mg PO q6h PRN, 10 tablets"
+ },
+ {
+  "start": 274,
+  "end": 289,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Anders Holm"
+ },
+ {
+  "start": 299,
+  "end": 304,
+  "label": "License",
+  "tier": "high",
+  "text": "29874"
+ },
+ {
+  "start": 311,
+  "end": 324,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 18, 2026"
+ }
+]

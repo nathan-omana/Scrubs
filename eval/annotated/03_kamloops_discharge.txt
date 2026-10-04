@@ -1,0 +1,7 @@
+DISCHARGE SUMMARY
+Patient: [[KOWALCZYK, Teresa|Person]]
+MRN: [[00731845|MRN]]
+Admitted: [[March 3, 2026|Date]]   Discharged: [[March 9, 2026|Date]]
+Attending: [[Dr. Victor Huang|Person]], [[Royal Inland Hospital|Location description]], [[Kamloops|Location description]]
+
+Ms. [[Kowalczyk|Person]] is a 58-year-old [[long-haul truck driver|Unique role]] admitted with acute right facial weakness. Diagnosis: [[Bell's palsy|Diagnosis]]. MRI excluded stroke. A [[Foley catheter|Clinical term]] was placed for [[urinary retention|Diagnosis]] on day 2 and removed before discharge. Discharged on [[prednisone|Drug]] [[60 mg daily|Dose]] for 7 days and [[valacyclovir|Drug]] [[1 g TID|Dose]]. Eye care with [[artificial tears|Drug]]. Her son [[Marek|Person]], [[who manages the gas station on Tranquille Road|Family detail]], will drive her to follow-up.

@@ -1,0 +1,13 @@
+MEDICATION RECONCILIATION - Kelowna General Hospital
+Patient: Priya Raman   MRN 6620417   Admit date 2026-09-21
+
+Home medications (verified with community pharmacy):
+- Allegra 180 mg daily
+- Lyrica 75 mg BID
+- Celebrex 200 mg daily, hold while inpatient
+- Ativan 0.5 mg SL qHS PRN
+- Florinef 0.1 mg daily for orthostatic hypotension
+
+Indication for admission: fibromyalgia flare with syncope.
+Prescriber: Dr. Neil Chambers (MSP practitioner # 38211)
+Reconciled by Grace Liu, RPh

@@ -1,0 +1,5 @@
+Physiotherapy progress note
+Client: [[Liam O'Sullivan|Person]], 19   Referred by [[Dr. Sarah Lindqvist|Person]]
+Date of visit: [[Aug 28, 2026|Date]]
+
+Liam is [[the starting goalie for the junior A hockey team in Penticton|Unique role]]. Injury: [[grade II MCL sprain|Diagnosis]], left knee, sustained in practice. Using [[ibuprofen|Drug]] [[400 mg TID|Dose]] PRN. Knee flexion 110 degrees, up from 85. Continue strengthening, return to ice in about 3 weeks if pain free.

@@ -1,0 +1,8 @@
+SOAP NOTE - [[Tofino General Hospital|Location description]] Emergency
+Pt: [[Daniel Okafor|Person]]   PHN [[9869 879 732|PHN]]   DOB [[1961-04-17|Date]]
+Seen [[Feb 11, 2026|Date]] by [[Dr. Helen Brightwater|Person]]
+
+S: 64M, [[local bush pilot|Unique role]], presents with chest tightness x 3 days after a long charter run to [[Ahousaht|Location description]]. Wife [[Grace|Person]] drove him in. Hx [[type 2 diabetes|Diagnosis]], [[hypertension|Diagnosis]].
+O: BP 158/94, HR 102. [[Troponin 48 ng/L|Lab value]]. ECG shows [[sinus tachycardia|Diagnosis]].
+A: Possible [[NSTEMI|Diagnosis]].
+P: [[ASA|Drug]] [[162 mg chewed|Dose]], [[nitroglycerin|Drug]] [[0.4 mg SL|Dose]] PRN. Transfer to [[Nanaimo Regional General Hospital|Location description]]. Call wife at [[250-555-0147|Phone]].
