@@ -34,11 +34,10 @@ def analyze(text):
 
 
 def tag_everything(text):
-    """Mask every flag (as if the clinician masked all), return (flags, pseudonymized text)."""
+    """Accept the review defaults (HIGH and MED masked, LOW kept), return (flags, pseudonymized text)."""
     flags = analyze(text)
     p = tagging.Pseudonyms()
     for f in flags:
-        f["masked"] = True
         f["pseudonym"] = p.get(config.TYPES[f["type"]][2], f["text"])
     return flags, tagging.pseudonymize(text, flags)
 

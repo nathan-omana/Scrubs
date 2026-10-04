@@ -10,12 +10,12 @@ import ReviewStep from "./components/ReviewStep";
 import Shell, { type Notice, type Step } from "./components/Shell";
 import UploadStep from "./components/UploadStep";
 
-const SCAN_STEPS = ["Extracting text", "Pass 1: Presidio and BC rules", "Pass 2: our model", "Pass 3: BC places and roles"];
-const FINALIZE_STEPS = ["Creating pseudonyms", "Shifting dates", "Keeping the mapping in memory only"];
+const SCAN_STEPS = ["Reading the document", "First pass: identifying details", "Second pass: identifying details", "Preparing items for review"];
+const FINALIZE_STEPS = ["Pseudonymizing", "Shifting dates", "Keeping the mapping in memory only"];
 
 const HEADINGS: Record<Step, [string, string]> = {
-  upload: ["Add a document", "Upload a PDF or paste a note. Scrubs flags identifiers before anything goes to Gemini."],
-  review: ["Review", "Check every flagged item. Masked items are replaced with pseudonyms before sending."],
+  upload: ["Add a document", "Upload a PDF or paste a note. Scrubs flags identifiers before anything goes to the chatbot."],
+  review: ["Review redactions", "Check every flagged item. Masked items are replaced with pseudonyms before sending."],
   chat: ["Chat", "Gemini receives pseudonymized text only. Answers are re-identified on your screen."],
 };
 
@@ -88,17 +88,20 @@ export default function Home() {
     }
   };
 
-  const reset = async () => {
+  // One request at a time, so each response is the latest state of the document.
+  const setMany = async (changes: [Flag, boolean][]) => {
     if (!current) return;
     setNotice(null);
     try {
-      for (const f of current.flags) {
-        const def = f.tier !== "low";
-        if (!f.locked && f.masked !== def) upsert(await api.setFlagMasked(current.id, f.flag_code, def));
-      }
+      for (const [f, masked] of changes) upsert(await api.setFlagMasked(current.id, f.flag_code, masked));
     } catch (err) {
       setNotice({ text: errorText(err) });
     }
+  };
+
+  const reset = () => {
+    if (!current) return;
+    setMany(current.flags.filter((f) => !f.locked && f.masked !== (f.tier !== "low")).map((f) => [f, f.tier !== "low"]));
   };
 
   const finish = async () => {
@@ -133,7 +136,14 @@ export default function Home() {
       {loading ? (
         <Loading title={loading.title} steps={loading.steps} />
       ) : step === "review" && current ? (
-        <ReviewStep doc={current} onSetMasked={setMasked} onReset={reset} onDone={finish} />
+        <ReviewStep
+          doc={current}
+          onSetMasked={setMasked}
+          onSetMany={setMany}
+          onReset={reset}
+          onBack={() => setStep("upload")}
+          onDone={finish}
+        />
       ) : step === "chat" ? (
         <ChatStep
           readyDocs={readyDocs}

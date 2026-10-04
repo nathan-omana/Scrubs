@@ -1,0 +1,5 @@
+Well-child visit, 4 months
+Infant: [[Amelia Chen-Morales|Person]]   DOB [[2026-06-03|Date]]   PHN [[9729 405 575|PHN]]
+Mother [[Sofia Morales|Person]] ([[paramedic at the Squamish station|Family detail]]) and father [[Leo Chen|Person]] attended. Family lives in [[Brackendale|Location description]].
+
+Growth on the 50th percentile. [[Neonatal jaundice|Diagnosis]] has resolved; [[bilirubin 180 umol/L|Lab value]] at birth. Continue [[vitamin D|Drug]] [[400 IU daily|Dose]]. Given [[DTaP-IPV-Hib|Drug]] and [[pneumococcal conjugate vaccine|Drug]] today. Next visit [[Oct 3|Date]].

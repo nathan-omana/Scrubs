@@ -1,0 +1,86 @@
+[
+ {
+  "start": 20,
+  "end": 25,
+  "label": "Date",
+  "tier": "med",
+  "text": "Oct 2"
+ },
+ {
+  "start": 32,
+  "end": 50,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mr. Raymond Sasaki"
+ },
+ {
+  "start": 73,
+  "end": 80,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "INR 3.8"
+ },
+ {
+  "start": 84,
+  "end": 91,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 30"
+ },
+ {
+  "start": 96,
+  "end": 104,
+  "label": "Drug",
+  "tier": "low",
+  "text": "warfarin"
+ },
+ {
+  "start": 105,
+  "end": 115,
+  "label": "Dose",
+  "tier": "low",
+  "text": "5 mg daily"
+ },
+ {
+  "start": 120,
+  "end": 134,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "atrial flutter"
+ },
+ {
+  "start": 186,
+  "end": 196,
+  "label": "Dose",
+  "tier": "low",
+  "text": "4 mg daily"
+ },
+ {
+  "start": 209,
+  "end": 214,
+  "label": "Date",
+  "tier": "med",
+  "text": "Oct 6"
+ },
+ {
+  "start": 218,
+  "end": 258,
+  "label": "Location description",
+  "tier": "med",
+  "text": "the lab on Third Avenue in Prince Rupert"
+ },
+ {
+  "start": 268,
+  "end": 285,
+  "label": "Employer",
+  "tier": "med",
+  "text": "Sea Wolf Charters"
+ },
+ {
+  "start": 372,
+  "end": 384,
+  "label": "Phone",
+  "tier": "high",
+  "text": "250-555-0188"
+ }
+]

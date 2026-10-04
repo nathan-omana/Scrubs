@@ -137,7 +137,9 @@ def full_flow(c, message="Draft a referral for Margaret Ellison"):
 # ---------- tests ----------
 
 def test_detection_makes_no_network_calls():
-    lexicon.LEXICON_SOURCE, lexicon._entries = "auto", None     # auto + no TIDB_HOST -> CSV
+    # CSV, not TiDB: the one read-only TiDB download is allowed (lexicon.py), and is tested in
+    # test_lexicon. Detection itself must make no network calls at all.
+    lexicon.LEXICON_SOURCE, lexicon._entries = "csv", None
     c = client()
     with NoNetwork() as net:
         r = c.post("/documents", json={"title": "", "text": NOTE})

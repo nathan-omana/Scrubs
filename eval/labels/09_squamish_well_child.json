@@ -1,0 +1,100 @@
+[
+ {
+  "start": 35,
+  "end": 54,
+  "label": "Person",
+  "tier": "high",
+  "text": "Amelia Chen-Morales"
+ },
+ {
+  "start": 61,
+  "end": 71,
+  "label": "Date",
+  "tier": "med",
+  "text": "2026-06-03"
+ },
+ {
+  "start": 78,
+  "end": 90,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9729 405 575"
+ },
+ {
+  "start": 98,
+  "end": 111,
+  "label": "Person",
+  "tier": "high",
+  "text": "Sofia Morales"
+ },
+ {
+  "start": 113,
+  "end": 146,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "paramedic at the Squamish station"
+ },
+ {
+  "start": 159,
+  "end": 167,
+  "label": "Person",
+  "tier": "high",
+  "text": "Leo Chen"
+ },
+ {
+  "start": 194,
+  "end": 205,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Brackendale"
+ },
+ {
+  "start": 239,
+  "end": 256,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Neonatal jaundice"
+ },
+ {
+  "start": 271,
+  "end": 291,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "bilirubin 180 umol/L"
+ },
+ {
+  "start": 311,
+  "end": 320,
+  "label": "Drug",
+  "tier": "low",
+  "text": "vitamin D"
+ },
+ {
+  "start": 321,
+  "end": 333,
+  "label": "Dose",
+  "tier": "low",
+  "text": "400 IU daily"
+ },
+ {
+  "start": 341,
+  "end": 353,
+  "label": "Drug",
+  "tier": "low",
+  "text": "DTaP-IPV-Hib"
+ },
+ {
+  "start": 358,
+  "end": 388,
+  "label": "Drug",
+  "tier": "low",
+  "text": "pneumococcal conjugate vaccine"
+ },
+ {
+  "start": 407,
+  "end": 412,
+  "label": "Date",
+  "tier": "med",
+  "text": "Oct 3"
+ }
+]
