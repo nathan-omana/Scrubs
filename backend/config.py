@@ -18,7 +18,7 @@ SPACY_MODEL = os.getenv("SPACY_MODEL", "en_core_web_sm")
 # Presidio entity types we ask for. We deliberately leave out LOCATION and NRP
 # (nationality/religion/politics) because they're noisy on clinical text; GLiNER handles places.
 PRESIDIO_ENTITIES = ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "DATE_TIME",
-                     "PHN", "POSTAL", "FACILITY"]
+                     "PHN", "POSTAL", "FACILITY", "MRN"]
 
 # Rename Presidio's type names to our shorter tag names.
 PRESIDIO_RENAME = {"PHONE_NUMBER": "PHONE", "EMAIL_ADDRESS": "EMAIL", "DATE_TIME": "DATE"}
@@ -52,6 +52,10 @@ GLINER_LABELS = {
     "employer or organization": "ORG",
     "hospital or clinic": "FACILITY",
     "street address": "ADDRESS",        # Presidio has no street-address rule, so GLiNER covers it
+    "medical diagnosis or condition": "DIAGNOSIS",
+    "symptom or chief complaint": "DIAGNOSIS",
+    "drug or medication name": "DRUG",
+    "dosage or drug dose": "DOSE",
 }
 
 # Confidence cutoff (0-1). LOWER = catches more but more false flags.
