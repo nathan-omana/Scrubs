@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Icon from "./Icon";
 import TierTag from "./TierTag";
 
 export default function HowItWorks() {
@@ -26,12 +25,12 @@ export default function HowItWorks() {
     <div className="popover" ref={ref}>
       <button
         type="button"
-        className="btn btn--sm"
+        className="masthead__link"
         aria-expanded={open}
         aria-controls="how-it-works"
         onClick={() => setOpen((o) => !o)}
       >
-        <Icon name="info" size={16} /> How it works
+        How it works
       </button>
       {open && (
         <div id="how-it-works" className="panel popover__panel" role="dialog" aria-label="How it works">
