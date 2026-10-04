@@ -92,6 +92,26 @@ def test_date_finder_skips_non_dates():
         assert "DATE" not in found(text).values(), (text, found(text))
 
 
+def test_find_street_addresses():
+    for text, addr in [("Lives at 4820 Marine Ave in town.", "4820 Marine Ave"),
+                       ("Home: 12 Old Bridge Road, Hope.", "12 Old Bridge Road"),
+                       ("Mail to 1050-3 Fraser St. today", "1050-3 Fraser St.")]:
+        assert found(text).get(addr) == "ADDRESS", (text, found(text))
+
+
+def test_address_rule_skips_doses_durations_and_doctors():
+    for text in ["apixaban 5 mg BID", "Follow up with Dr. Singh in 2 weeks.", "Seen by Dr. Amrit Singh",
+                 "gave 2 Dr", "walks 2 blocks to the store"]:
+        assert "ADDRESS" not in found(text).values(), (text, found(text))
+
+
+def test_find_prescriber_licenses():
+    for text, number in [("Signed, CPSBC #34567", "34567"), ("License: 12345", "12345"),
+                         ("prescriber no. AB1234 on file", "AB1234"), ("College ID 40912", "40912")]:
+        assert found(text).get(number) == "LICENSE", (text, found(text))
+    assert "LICENSE" not in found("licensed practical nurse, 5 mg daily").values()
+
+
 # ---------- durations and relative days are clinical, not dates ----------
 
 def test_durations_are_not_dates():
