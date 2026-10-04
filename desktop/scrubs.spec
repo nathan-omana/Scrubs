@@ -15,13 +15,10 @@ datas = [
     (str(ROOT / "desktop" / "build" / "models" / "gliner_medium"), "models/gliner_medium"),
 ]
 binaries = []
-# The backend modules, imported by name from backend/ (pathex below).
-hiddenimports = [
-    "app", "config", "gemini_client", "audit",
-    "pipeline", "pipeline.detector", "pipeline.extract", "pipeline.lexicon", "pipeline.merge",
-    "pipeline.pdf", "pipeline.risk", "pipeline.rules", "pipeline.tagging",
-    "waitress", "keyring.backends.Windows",
-]
+# Every backend module, found by listing backend/ so new files are picked up automatically.
+hiddenimports = [p.stem for p in BACKEND.glob("*.py") if p.stem != "demo"]
+hiddenimports += ["pipeline"] + [f"pipeline.{p.stem}" for p in (BACKEND / "pipeline").glob("*.py") if p.stem != "__init__"]
+hiddenimports += ["waitress", "keyring.backends.Windows"]
 
 # Packages that load data files or plugins at runtime.
 for pkg in ["presidio_analyzer", "spacy", "en_core_web_sm", "thinc", "gliner", "tldextract",
