@@ -455,6 +455,14 @@ def test_blocked_reason_keeps_upper_case_kinds():
     assert reason[0].isdigit() and "masked value" in reason and "(Person)" in reason, reason
 
 
+def test_rule_address_and_license_are_locked_high():
+    c = client()
+    doc = new_doc(c, text="Pt lives at 4820 Marine Ave. Rx signed, CPSBC #34567.")
+    for value, label in [("4820 Marine Ave", "Address"), ("34567", "License")]:
+        f = next(f for f in doc["flags"] if f["text"].startswith(value))
+        assert f["label"] == label and f["tier"] == "high" and f["locked"] and f["source"] == "presidio", f
+
+
 def test_chat_requires_finalized_documents():
     c = client()
     doc = new_doc(c)

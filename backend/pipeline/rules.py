@@ -69,6 +69,46 @@ class MRNRecognizer(EntityRecognizer):
         ]
 
 
+# ---------- Street address (a safety net: GLiNER also finds addresses) ----------
+class StreetAddressRecognizer(EntityRecognizer):
+    """
+    "4820 Marine Ave", "12 Old Bridge Road", "1050-B..." style street addresses. Case-SENSITIVE on
+    purpose: the street name and type must be capitalized, so "2 weeks" or "5 mg" never match.
+    A custom recognizer because Presidio's PatternRecognizer adds IGNORECASE by default.
+    """
+    _RE = re.compile(
+        r"\b\d{1,6}(?:-\d{1,6})?\s+(?:[A-Z][a-z]+\.?\s+){1,3}"
+        r"(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Boulevard|Blvd|Way|Crescent|Cres|Lane|Ln|Place|Pl"
+        r"|Court|Ct|Highway|Hwy|Terrace|Trail|Close|Row)\b\.?"
+    )
+
+    def __init__(self):
+        super().__init__(supported_entities=["ADDRESS"], name="StreetAddressRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [RecognizerResult("ADDRESS", m.start(), m.end(), 0.7) for m in self._RE.finditer(text)]
+
+
+# ---------- Prescriber license (CPSBC and similar) ----------
+class LicenseRecognizer(EntityRecognizer):
+    """The number after a license word: "CPSBC #34567", "License: 12345", "College ID 40912"."""
+    _RE = re.compile(
+        r"\b(?:licen[cs]e|CPSBC|College\s+(?:ID|No\.?)|prescriber|practitioner)\s*(?:no\.?|number|#|ID)?"
+        r"[\s:#-]*([A-Z]{0,2}\d{4,6})\b",
+        re.IGNORECASE,
+    )
+
+    def __init__(self):
+        super().__init__(supported_entities=["LICENSE"], name="LicenseRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [RecognizerResult("LICENSE", m.start(1), m.end(1), 0.9) for m in self._RE.finditer(text)]
+
+
 # ---------- Context-aware date recognizer ----------
 class ContextDateRecognizer(EntityRecognizer):
     """
@@ -122,6 +162,8 @@ analyzer.registry.add_recognizer(BCPHNRecognizer())
 analyzer.registry.add_recognizer(MRNRecognizer())
 analyzer.registry.add_recognizer(ContextDateRecognizer())
 analyzer.registry.add_recognizer(RunningTextDateRecognizer())
+analyzer.registry.add_recognizer(StreetAddressRecognizer())
+analyzer.registry.add_recognizer(LicenseRecognizer())
 
 # Canadian postal code, e.g. "V0R 2Z0". (First letter can't be D, F, I, O, Q, U, W, Z.)
 analyzer.registry.add_recognizer(PatternRecognizer(
