@@ -198,16 +198,82 @@ def test_unreadable_dates_return_none():
 
 # ---------- tagging the clinician's question ----------
 
+def typed(value, kind, pseudonym, masked=True):
+    """A flag as the API keeps it: value, internal type, pseudonym (position doesn't matter here)."""
+    return {"text": value, "type": kind, "pseudonym": pseudonym, "masked": masked, "start_idx": 0, "end_idx": 0}
+
+
 def test_question_names_are_tagged_any_case():
-    m = {"[PATIENT_01]": "Jane Doe", "[PATIENT_02]": "Jane"}
-    assert tagging.tag_question("How is JANE DOE doing?", m) == "How is [PATIENT_01] doing?"
+    flags = [typed("Jane Doe", "PERSON", "[PATIENT_01]"), typed("Jane", "PERSON", "[PATIENT_02]")]
+    assert tagging.tag_question("How is JANE DOE doing?", flags) == "How is [PATIENT_01] doing?"
 
 
 def test_question_tagging_is_whole_words_only():
     # A short masked value ("94", an age) must not eat parts of other numbers or words.
-    m = {"[AGE_01]": "94", "[LOC_01]": "Hope"}
+    flags = [typed("94", "AGE", "[AGE_01]"), typed("Hope", "LOCATION", "[LOC_01]")]
     q = "Give 940 mg? Hopeful plan for the 94 year old in Hope."
-    assert tagging.tag_question(q, m) == "Give 940 mg? Hopeful plan for the [AGE_01] year old in [LOC_01]."
+    assert tagging.tag_question(q, flags) == "Give 940 mg? Hopeful plan for the [AGE_01] year old in [LOC_01]."
+
+
+def test_question_unmasked_values_stay():
+    flags = [typed("Hope", "LOCATION", "[LOC_01]", masked=False)]
+    assert tagging.tag_question("Lives in Hope", flags) == "Lives in Hope"
+
+
+# ---------- name and number variants (QA: these reached Gemini unchanged) ----------
+
+OKAFOR = [typed("Daniel Okafor", "PERSON", "[PATIENT_01]"), typed("Dr. Priya Sandhu", "PROVIDER", "[PROVIDER_01]"),
+          typed("(604) 555-0187", "PHONE", "[PHONE_01]"), typed("9487 312 652", "PHN", "[HCN_01]")]
+
+
+def test_question_variants_are_tagged():
+    cases = {
+        "Summarize Mr. Okafor's case": "Summarize Mr. [PATIENT_01]'s case",
+        "Patient okafor, daniel - summarize": "Patient [PATIENT_01], [PATIENT_01] - summarize",
+        "Was Dr. Sandhu involved?": "Was Dr. [PROVIDER_01] involved?",
+        "Call 604-555-0187": "Call [PHONE_01]",
+        "Call 6045550187 or (604) 555-0187": "Call [PHONE_01] or [PHONE_01]",
+        "PHN 9487312652": "PHN [HCN_01]",
+    }
+    for q, want in cases.items():
+        assert tagging.tag_question(q, OKAFOR) == want, (q, tagging.tag_question(q, OKAFOR))
+
+
+def test_number_variants_need_the_whole_number():
+    assert tagging.tag_question("Dose 6045550 mg, ref 46045550187", OKAFOR) == "Dose 6045550 mg, ref 46045550187"
+
+
+def test_note_repeats_of_name_parts_and_number_layouts_are_replaced():
+    text = ("Daniel Okafor seen by Dr. Priya Sandhu. Phone (604) 555-0187. Mr. Okafor's wife called "
+            "6045550187. Discussed with Sandhu. OKAFOR to return.")
+    flags = []
+    for f in OKAFOR[:3]:
+        start = text.index(f["text"])
+        flags.append({**f, "start_idx": start, "end_idx": start + len(f["text"])})
+    out = tagging.pseudonymize(text, flags)
+    for secret in ["okafor", "daniel", "sandhu", "priya", "555", "0187"]:
+        assert secret not in out.lower(), (secret, out)
+    assert "Mr. [PATIENT_01]'s wife" in out
+
+
+def test_full_value_wins_over_another_names_word():
+    # "Claire Park" is flagged only in its second mention; the first is found as a repeat and
+    # must become [PATIENT_02], not "Claire [PATIENT_01]" from the word "Park" of "Eleanor Park".
+    text = "Eleanor Park lives with Claire Park. Later Claire Park and Park visit."
+    s = text.rindex("Claire Park")
+    flags = [{**typed("Eleanor Park", "PERSON", "[PATIENT_01]"), "start_idx": 0, "end_idx": 12},
+             {**typed("Claire Park", "PERSON", "[PATIENT_02]"), "start_idx": s, "end_idx": s + 11}]
+    out = tagging.pseudonymize(text, flags)
+    assert out == "[PATIENT_01] lives with [PATIENT_02]. Later [PATIENT_02] and [PATIENT_01] visit.", out
+
+
+def test_name_words_skip_titles_particles_and_eponyms():
+    assert tagging._name_words("Mrs. Eleanor Park") == ["Eleanor", "Park"]
+    assert tagging._name_words("Ludwig van der Berg") == ["Ludwig", "Berg"]
+    assert tagging._name_words("Okafor's") == ["Okafor"]
+    assert tagging._name_words("Daughter Claire") == ["Claire"]
+    assert tagging._name_words("Al Wu") == []                 # too short to match safely on their own
+    assert tagging._name_words("Bell") == []                  # never-redact eponym
 
 
 if __name__ == "__main__":

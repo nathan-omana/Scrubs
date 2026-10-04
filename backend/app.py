@@ -238,18 +238,16 @@ def mapping(doc_id):
 
 def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
     """
-    (count, reason): how many masked original values (whole word, any case) are still in the
-    outbound text, plus 1 for a raw PHN or email anywhere. The reason names KINDS only
-    ("Person, PHN"), never the values, because it is shown on screen and may be logged.
-    It checks exactly the values pseudonymize() replaces everywhere (config.MIN_REPEAT_CHARS),
-    so its own hiding step can never trip it.
+    (count, reason): how many masked values are still in the outbound text, in full or in part
+    ("Mr. Okafor", "6045550187"), plus 1 for a raw PHN or email anywhere. The reason names KINDS
+    only ("Person, PHN"), never the values, because it is shown on screen and may be logged.
+    It looks for exactly what pseudonymize() and tag_question() replace (tagging.variant_spans),
+    so their own hiding step can never trip it.
     """
     leaked: dict[str, str] = {}                                   # value -> label
     for f in flags:
-        v = f["text"].strip().lower()
-        if (f["masked"] and len(v) >= config.MIN_REPEAT_CHARS
-                and re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE)):
-            leaked.setdefault(v, f["label"])
+        if f["masked"] and tagging.variant_spans(outbound, f):
+            leaked.setdefault(f["text"].strip().lower(), f["label"])
     reasons = []
     if leaked:
         kinds = ", ".join(sorted(set(leaked.values())))
@@ -258,7 +256,8 @@ def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
     if raw:
         reasons.append("a PHN in the message that isn't in any reviewed document" if "PHN" in raw
                        else "an email address in the message that isn't in any reviewed document")
-    return len(leaked) + (1 if raw else 0), "; ".join(reasons).capitalize() if reasons else ""
+    text = "; ".join(reasons)
+    return len(leaked) + (1 if raw else 0), text[:1].upper() + text[1:]     # not .capitalize(): keeps "PHN"
 
 
 @app.post("/chat")
@@ -279,7 +278,7 @@ def chat():
 
     # Tag anything identifying the clinician typed, using every selected document's mapping.
     flags = [f for d in docs for f in d["flags"]]
-    safe_message = tagging.tag_question(message, tagging.mapping_of(flags))
+    safe_message = tagging.tag_question(message, flags)
     note = "\n\n".join(f"Document {i + 1}:\n{d['pseudonymized_text']}" for i, d in enumerate(docs))
     outbound_text = f"{note}\n\nRequest: {safe_message}"
 
