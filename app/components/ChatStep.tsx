@@ -8,7 +8,8 @@ import type { Doc } from "../../lib/types";
 import Icon from "./Icon";
 
 export type ChatMessage =
-  | { role: "user"; text: string; sent: string; mapping: Record<string, string> }
+  // blocked: the leak check held this message back, so nothing was sent to Gemini.
+  | { role: "user"; text: string; sent: string; mapping: Record<string, string>; blocked?: boolean }
   | {
       role: "assistant";
       answer: string;
@@ -124,9 +125,17 @@ export default function ChatStep({
     setMessages((m) => [...m, userMsg]);
     try {
       const res = await chat(ids, text);
-      const actual = requestPart(res.outbound_text);
+      // Only a message that actually went out shows the backend's version. A blocked one keeps
+      // the placeholder and is labelled as held back.
+      const blocked = res.identifier_count > 0;
+      const actual = blocked ? null : requestPart(res.outbound_text);
+      const update: ChatMessage | null = blocked
+        ? { ...userMsg, blocked: true }
+        : actual !== null
+          ? { ...userMsg, sent: actual }
+          : null;
       setMessages((m) => [
-        ...(actual === null ? m : m.map((x) => (x === userMsg ? { ...userMsg, sent: actual } : x))),
+        ...(update ? m.map((x) => (x === userMsg ? update : x)) : m),
         {
           role: "assistant",
           answer: res.answer_with_pseudonyms,
@@ -137,8 +146,10 @@ export default function ChatStep({
         },
       ]);
     } catch (err) {
+      const isBlocked = err instanceof ApiError && err.kind === "blocked";
+      if (isBlocked) setMessages((m) => m.map((x) => (x === userMsg ? { ...userMsg, blocked: true } : x)));
       const msg: ChatMessage =
-        err instanceof ApiError && err.kind === "blocked"
+        isBlocked && err instanceof ApiError
           ? {
               role: "assistant",
               answer: "",
@@ -273,7 +284,7 @@ export default function ChatStep({
                 </div>
                 {split && (
                   <div className="bubble bubble--user is-ai-view">
-                    <div className="bubble__who">Sent to Gemini</div>
+                    <div className="bubble__who">{m.blocked ? "Held back, not sent" : "Sent to Gemini"}</div>
                     <AiSaw text={m.sent} mapping={m.mapping} />
                   </div>
                 )}
