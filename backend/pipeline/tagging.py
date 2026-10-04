@@ -50,7 +50,9 @@ def _add_repeats(text: str, chosen: list[dict]) -> list[dict]:
         value = text[s["start"]:s["end"]].strip()
         if len(value) < 3:                       # skip tiny values like "Al" to avoid nonsense matches
             continue
-        for m in re.finditer(r"\b" + re.escape(value) + r"\b", text, re.IGNORECASE):
+        # (?<!\w) / (?!\w) instead of \b: \b needs a letter or digit at the edge, so a value
+        # that starts with "(" like "(250) 555-0142" would never match and its repeats would leak.
+        for m in re.finditer(r"(?<!\w)" + re.escape(value) + r"(?!\w)", text, re.IGNORECASE):
             overlaps = any(m.start() < e and m.end() > b for b, e in taken)
             if not overlaps:
                 extra.append({**s, "start": m.start(), "end": m.end()})
@@ -59,13 +61,16 @@ def _add_repeats(text: str, chosen: list[dict]) -> list[dict]:
 
 
 # Gemini sometimes rewrites tags slightly: "[PERSON_1]", "PERSON_1", "[Person 1]".
-_TAG_LIKE = re.compile(r"\[?\s*([A-Za-z]+)[ _](\d+)\s*\]?")
+# Bracketed forms may use a space and inner padding; bare forms need the underscore, so ordinary
+# text like "Type 2" is never touched. The surrounding spaces are never consumed.
+_TAG_LIKE = re.compile(r"\[\s*([A-Za-z]+)[ _](\d+)\s*\]|\b([A-Za-z]+)_(\d+)\b")
 
 
 def restore(answer: str, mapping: dict) -> str:
     """Swap tags in Gemini's answer back to the real values. Unknown tags are left alone."""
     def swap(m: re.Match) -> str:
-        tag = f"[{m.group(1).upper()}_{m.group(2)}]"
+        name, number = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
+        tag = f"[{name.upper()}_{number}]"
         return mapping.get(tag, m.group(0))
     return _TAG_LIKE.sub(swap, answer)
 
@@ -73,6 +78,8 @@ def restore(answer: str, mapping: dict) -> str:
 def tag_question(question: str, mapping: dict) -> str:
     """Replace any real values the clinician typed (e.g. the patient's name) with their tags."""
     # Longest values first, so "Jane Doe" is replaced before "Jane".
+    # Whole words only: a masked age "74" must not turn "740 mg" into "[AGE_1]0 mg".
     for tag, value in sorted(mapping.items(), key=lambda kv: -len(kv[1])):
-        question = re.sub(re.escape(value), tag, question, flags=re.IGNORECASE)
+        question = re.sub(r"(?<!\w)" + re.escape(value) + r"(?!\w)", lambda _m, t=tag: t,
+                          question, flags=re.IGNORECASE)
     return question

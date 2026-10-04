@@ -11,7 +11,8 @@ import config
 
 def _is_medical_term(span_text: str) -> bool:
     # "Parkinson's" / "Foley" etc. look like names to a model, but they're clinical terms.
-    words = re.findall(r"[\w']+", span_text.lower())
+    # Word processors and PDFs write a curly apostrophe (Bell’s); treat it like a straight one.
+    words = re.findall(r"[\w']+", span_text.lower().replace("’", "'"))
     return len(words) == 1 and words[0] in config.NEVER_REDACT
 
 

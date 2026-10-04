@@ -84,6 +84,9 @@ QUASI_TYPES = {"OCCUPATION", "LOCATION", "AGE", "RELATION", "ORG"}
 RED_COMBINATION = 3
 
 # ---------- Upload ----------
-MAX_UPLOAD_MB = 5
+# Browser origins allowed to call the API (CORS). Comma-separated in .env.
+FRONTEND_ORIGINS = {o.strip() for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",") if o.strip()}
+
+MAX_UPLOAD_MB = 15         # matches pipeline/pdf.py MAX_BYTES; Flask refuses bigger uploads with 413
 # spaCy refuses text over 1,000,000 characters; real notes are far shorter. Fail clearly instead.
 MAX_TEXT_CHARS = 200_000
