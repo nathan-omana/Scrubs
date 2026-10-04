@@ -31,7 +31,7 @@ import config
 import gemini_client
 import pipeline
 from pipeline import lexicon, rules, tagging
-from pipeline.dates import shift_date
+from pipeline.dates import find_dates, parse, same_day, shift_date
 from pipeline.extract import PdfError, ScannedPdfError, extract_text
 
 try:
@@ -99,11 +99,14 @@ def call_audit(name: str, **kwargs) -> None:
 def date_pseudonym(value: str, text: str) -> str | None:
     """
     The shifted date for a DATE flag, or None to use a [DATE_NN] pseudonym instead: when the date
-    can't be read, or when the shifted date is also written somewhere in this note. That clash
-    would make the leak check see a real date in the outbound text and mix up re-identification.
+    can't be read, or when the note also mentions the shifted day as a real date (in any format).
+    That clash would make the leak check see a real date in the outbound text and mix up
+    re-identification.
     """
     shifted = shift_date(value, DATE_OFFSET_DAYS)
     if not shifted or re.search(r"(?<!\w)" + re.escape(shifted) + r"(?!\w)", text, re.IGNORECASE):
+        return None
+    if any(same_day(parse(text[s:e]), parse(shifted)) for s, e in find_dates(text)):
         return None
     return shifted
 
