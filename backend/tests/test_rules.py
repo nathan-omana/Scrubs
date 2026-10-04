@@ -112,6 +112,18 @@ def test_find_prescriber_licenses():
     assert "LICENSE" not in found("licensed practical nurse, 5 mg daily").values()
 
 
+def test_scores_are_not_dates():
+    for text in ["Pain 7/10 at rest.", "He rates pain 8/10 today.", "power 4/5 in the left arm", "VAS 3/10 overnight",
+                 "Reports 6/10 pain", "GCS 14/15 on arrival", "Pain was 7/10, now 3/10."]:
+        assert "DATE" not in found(text).values(), (text, found(text))
+
+
+def test_dates_near_score_rules_are_still_dates():
+    for text, date in [("Seen on 9/10 for follow-up.", "9/10"), ("Pt admitted 3/14 with chest pain.", "3/14"),
+                       ("DOB 03/14/1951.", "03/14/1951"), ("Seen 9/28/2026.", "9/28/2026")]:
+        assert found(text).get(date) == "DATE", (text, found(text))
+
+
 # ---------- durations and relative days are clinical, not dates ----------
 
 def test_durations_are_not_dates():
