@@ -155,7 +155,7 @@ export default function Home() {
           onReview={openReview}
         />
       ) : (
-        <UploadStep docs={docs} onScan={scan} onOpen={openReview} error={scanError} />
+        <UploadStep onScan={scan} error={scanError} />
       )}
     </Shell>
   );
