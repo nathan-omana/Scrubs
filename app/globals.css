@@ -143,14 +143,14 @@ p {
 }
 .brand__name {
   font-weight: 700;
-  font-size: var(--text-lg);
-  line-height: 1.1;
+  font-size: 1.45rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--accent);
 }
 .brand__sub {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .nav__label {
   font-size: var(--text-xs);
@@ -241,7 +241,9 @@ p {
 }
 .topbar h1 {
   font-size: var(--text-xl);
+  font-weight: 700;
   line-height: 1.2;
+  color: var(--accent);
 }
 .topbar__sub {
   color: var(--text-muted);
@@ -957,6 +959,16 @@ p {
   color: var(--text);
   max-height: 260px;
   overflow: auto;
+}
+.form-error {
+  color: var(--tier-high);
+  background: var(--tier-high-bg);
+  border: 1px solid var(--tier-high);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-3) 0 0;
+}
+.form-error.notice {
+  margin: 0 0 var(--space-3);
 }
 .outbound--blocked {
   color: var(--tier-high);

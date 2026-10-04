@@ -111,11 +111,13 @@ COMBINATION_MIN = 3
 CLINICIAN = os.getenv("CLINICIAN", "Dr. A. Singh")
 
 # ---------- Upload ----------
-# Port for `python app.py`. macOS AirPlay Receiver already uses 5000, so Macs may need 5001.
+# Port for `python app.py`. On a Mac, AirPlay Receiver also listens on 5000: 127.0.0.1:5000 still
+# reaches us, but localhost:5000 may reach AirPlay. Use 127.0.0.1 in URLs, or set PORT=5001.
 PORT = int(os.getenv("PORT", "5000"))
 
 # Browser origins allowed to call the API (CORS). Comma-separated in .env.
-FRONTEND_ORIGINS = {o.strip() for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",") if o.strip()}
+FRONTEND_ORIGINS = {o.strip() for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+                    .split(",") if o.strip()}
 
 MAX_UPLOAD_MB = 15         # matches pipeline/pdf.py MAX_BYTES; Flask refuses bigger uploads with 413
 # spaCy refuses text over 1,000,000 characters; real notes are far shorter. Fail clearly instead.

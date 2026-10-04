@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 FILES = ["test_smoke", "test_lexicon", "test_pdf", "test_api", "test_rules", "test_merge", "test_tagging",
-         "test_detector", "test_privacy"]
+         "test_detector", "test_privacy", "test_audit"]
 
 if __name__ == "__main__":
     files = FILES + (["test_model"] if "--model" in sys.argv else [])

@@ -216,12 +216,26 @@ def mapping(doc_id):
     return jsonify(tagging.mapping_of(doc["flags"])) if doc else error("Document not found.", 404)
 
 
-def leaked_values(outbound: str, flags: list[dict]) -> int:
-    """How many masked original values (whole word, any case) still appear in the outbound text."""
-    values = {f["text"].strip().lower() for f in flags if f["masked"] and f["text"].strip()}
-    count = sum(1 for v in values
-                if re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE))
-    return count + (1 if rules.looks_unsafe(outbound) else 0)    # raw PHN or email anywhere
+def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
+    """
+    (count, reason): how many masked original values (whole word, any case) are still in the
+    outbound text, plus 1 for a raw PHN or email anywhere. The reason names KINDS only
+    ("Person, PHN"), never the values, because it is shown on screen and may be logged.
+    """
+    leaked: dict[str, str] = {}                                   # value -> label
+    for f in flags:
+        v = f["text"].strip().lower()
+        if f["masked"] and v and re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE):
+            leaked.setdefault(v, f["label"])
+    reasons = []
+    if leaked:
+        kinds = ", ".join(sorted(set(leaked.values())))
+        reasons.append(f"{len(leaked)} masked value{'s' if len(leaked) != 1 else ''} still in the text ({kinds})")
+    raw = rules.looks_unsafe(outbound)                            # "raw PHN found" / "raw email found"
+    if raw:
+        reasons.append("a PHN in the message that isn't in any reviewed document" if "PHN" in raw
+                       else "an email address in the message that isn't in any reviewed document")
+    return len(leaked) + (1 if raw else 0), "; ".join(reasons).capitalize() if reasons else ""
 
 
 @app.post("/chat")
@@ -247,10 +261,11 @@ def chat():
     outbound_text = f"{note}\n\nRequest: {safe_message}"
 
     # Leak check: never send if an original masked value (or a raw PHN/email) is still present.
-    identifier_count = leaked_values(outbound_text, flags)
+    identifier_count, reason = leak_check(outbound_text, flags)
     if identifier_count:
         log.info("chat blocked: %d identifiers found", identifier_count)
-        return jsonify(answer_with_pseudonyms="", outbound_text=outbound_text, identifier_count=identifier_count)
+        return jsonify(answer_with_pseudonyms="", outbound_text=outbound_text, identifier_count=identifier_count,
+                       blocked_reason=reason)
 
     if not config.GEMINI_API_KEY:
         return error("Gemini isn't set up. Add GEMINI_API_KEY to .env and restart the backend.", 503)
@@ -268,6 +283,6 @@ def chat():
 
 if __name__ == "__main__":
     # 127.0.0.1 = only this computer can reach it. Don't change to 0.0.0.0 unless you mean it.
-    # macOS uses port 5000 for AirPlay Receiver: set PORT=5001 in .env (and the frontend's
-    # NEXT_PUBLIC_API_URL to match), or turn AirPlay Receiver off in System Settings.
+    # On a Mac, AirPlay Receiver also listens on 5000: call us at 127.0.0.1:5000 (not localhost),
+    # or set PORT=5001 in .env and point NEXT_PUBLIC_API_URL there.
     app.run(host="127.0.0.1", port=config.PORT, debug=False)

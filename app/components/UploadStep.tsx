@@ -10,6 +10,7 @@ type Props = {
   docs: Doc[];
   onScan: (input: NewDocument) => void;
   onOpen: (doc: Doc) => void;
+  error?: string | null;
 };
 
 const formatAdded = (iso: string) => {
@@ -21,7 +22,7 @@ const formatAdded = (iso: string) => {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-export default function UploadStep({ docs, onScan, onOpen }: Props) {
+export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -117,6 +118,12 @@ export default function UploadStep({ docs, onScan, onOpen }: Props) {
               onChange={(e) => setText(e.target.value)}
             />
           </label>
+
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <div className="actions">
             <button type="button" className="btn btn--primary" disabled={!canScan} onClick={scan}>

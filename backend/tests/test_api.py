@@ -287,6 +287,16 @@ def test_chat_over_several_documents():
     assert "Ellison" not in r.json["outbound_text"]
 
 
+def test_blocked_chat_says_why_without_values():
+    c = client()
+    doc = ready_doc(c, text="Pt seen for cough. Apixaban 5 mg BID.")
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Send it to jo.doe@example.com"})
+    assert r.status_code == 200
+    assert set(r.json) == CHAT_KEYS | {"blocked_reason"}
+    assert r.json["identifier_count"] == 1 and r.json["answer_with_pseudonyms"] == ""
+    assert "email" in r.json["blocked_reason"] and "jo.doe" not in r.json["blocked_reason"]
+
+
 def test_chat_requires_finalized_documents():
     c = client()
     doc = new_doc(c)
