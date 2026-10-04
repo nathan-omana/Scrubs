@@ -1,0 +1,330 @@
+phrase,type,ambiguous
+Vancouver,LOCATION,0
+Victoria,LOCATION,1
+Surrey,LOCATION,0
+Burnaby,LOCATION,0
+Richmond,LOCATION,0
+Kelowna,LOCATION,0
+Kamloops,LOCATION,0
+Nanaimo,LOCATION,0
+Prince George,LOCATION,0
+Abbotsford,LOCATION,0
+Chilliwack,LOCATION,0
+Coquitlam,LOCATION,0
+Langley,LOCATION,0
+Delta,LOCATION,1
+Maple Ridge,LOCATION,0
+North Vancouver,LOCATION,0
+West Vancouver,LOCATION,0
+New Westminster,LOCATION,0
+Port Coquitlam,LOCATION,0
+Port Moody,LOCATION,0
+White Rock,LOCATION,0
+Mission,LOCATION,1
+Vernon,LOCATION,0
+Penticton,LOCATION,0
+Campbell River,LOCATION,0
+Courtenay,LOCATION,1
+Comox,LOCATION,0
+Duncan,LOCATION,1
+Parksville,LOCATION,0
+Qualicum Beach,LOCATION,0
+Port Alberni,LOCATION,0
+Tofino,LOCATION,0
+Ucluelet,LOCATION,0
+Sooke,LOCATION,0
+Sidney,LOCATION,1
+Salt Spring Island,LOCATION,0
+Ganges,LOCATION,1
+Powell River,LOCATION,0
+Sechelt,LOCATION,0
+Gibsons,LOCATION,0
+Squamish,LOCATION,0
+Whistler,LOCATION,0
+Pemberton,LOCATION,0
+Lillooet,LOCATION,0
+Hope,LOCATION,1
+Merritt,LOCATION,1
+Princeton,LOCATION,1
+Osoyoos,LOCATION,0
+Oliver,LOCATION,1
+Summerland,LOCATION,0
+Peachland,LOCATION,0
+West Kelowna,LOCATION,0
+Lake Country,LOCATION,0
+Salmon Arm,LOCATION,0
+Revelstoke,LOCATION,0
+Golden,LOCATION,1
+Invermere,LOCATION,0
+Radium Hot Springs,LOCATION,0
+Cranbrook,LOCATION,0
+Kimberley,LOCATION,1
+Fernie,LOCATION,0
+Sparwood,LOCATION,0
+Elkford,LOCATION,0
+Nelson,LOCATION,1
+Castlegar,LOCATION,0
+Trail,LOCATION,1
+Rossland,LOCATION,0
+Grand Forks,LOCATION,0
+Greenwood,LOCATION,0
+Creston,LOCATION,0
+Nakusp,LOCATION,0
+Kaslo,LOCATION,0
+New Denver,LOCATION,0
+Salmo,LOCATION,0
+100 Mile House,LOCATION,0
+Williams Lake,LOCATION,0
+Quesnel,LOCATION,0
+Clinton,LOCATION,1
+Ashcroft,LOCATION,0
+Cache Creek,LOCATION,0
+Logan Lake,LOCATION,0
+Clearwater,LOCATION,0
+Barriere,LOCATION,0
+Valemount,LOCATION,0
+McBride,LOCATION,0
+Mackenzie,LOCATION,1
+Fort St. James,LOCATION,0
+Vanderhoof,LOCATION,0
+Fraser Lake,LOCATION,0
+Burns Lake,LOCATION,0
+Houston,LOCATION,1
+Smithers,LOCATION,0
+Hazelton,LOCATION,0
+Terrace,LOCATION,1
+Kitimat,LOCATION,0
+Prince Rupert,LOCATION,0
+Masset,LOCATION,0
+Daajing Giids,LOCATION,0
+Queen Charlotte,LOCATION,0
+Sandspit,LOCATION,0
+Stewart,LOCATION,1
+Dease Lake,LOCATION,0
+Atlin,LOCATION,0
+Fort St. John,LOCATION,0
+Dawson Creek,LOCATION,0
+Chetwynd,LOCATION,0
+Tumbler Ridge,LOCATION,0
+Hudson's Hope,LOCATION,0
+Fort Nelson,LOCATION,0
+Taylor,LOCATION,1
+Pouce Coupe,LOCATION,0
+Bella Coola,LOCATION,0
+Bella Bella,LOCATION,0
+Port Hardy,LOCATION,0
+Port McNeill,LOCATION,0
+Alert Bay,LOCATION,0
+Sointula,LOCATION,0
+Gold River,LOCATION,0
+Tahsis,LOCATION,0
+Zeballos,LOCATION,0
+Sayward,LOCATION,0
+Cumberland,LOCATION,0
+Lake Cowichan,LOCATION,0
+Ladysmith,LOCATION,0
+Chemainus,LOCATION,0
+Crofton,LOCATION,0
+Lantzville,LOCATION,0
+Gabriola Island,LOCATION,0
+Pender Island,LOCATION,0
+Mayne Island,LOCATION,0
+Galiano Island,LOCATION,0
+Saturna Island,LOCATION,0
+Hornby Island,LOCATION,0
+Denman Island,LOCATION,0
+Quadra Island,LOCATION,0
+Cortes Island,LOCATION,0
+Texada Island,LOCATION,0
+Lund,LOCATION,1
+Agassiz,LOCATION,0
+Harrison Hot Springs,LOCATION,0
+Boston Bar,LOCATION,0
+Lytton,LOCATION,0
+Spences Bridge,LOCATION,0
+Keremeos,LOCATION,0
+Cawston,LOCATION,0
+Midway,LOCATION,1
+Rock Creek,LOCATION,1
+Likely,LOCATION,1
+Horsefly,LOCATION,0
+Wells,LOCATION,1
+Barkerville,LOCATION,0
+Tatla Lake,LOCATION,0
+Anahim Lake,LOCATION,0
+Alexis Creek,LOCATION,0
+Field,LOCATION,1
+Port Renfrew,LOCATION,0
+Bamfield,LOCATION,0
+Port Edward,LOCATION,0
+Telegraph Creek,LOCATION,0
+Fort Fraser,LOCATION,0
+Granisle,LOCATION,0
+Telkwa,LOCATION,0
+Lumby,LOCATION,0
+Enderby,LOCATION,0
+Armstrong,LOCATION,1
+Sicamous,LOCATION,0
+Chase,LOCATION,1
+Sorrento,LOCATION,0
+Klemtu,LOCATION,0
+Hartley Bay,LOCATION,0
+Kincolith,LOCATION,0
+Gingolx,LOCATION,0
+Port Clements,LOCATION,0
+Tlell,LOCATION,0
+Woss,LOCATION,0
+Port Alice,LOCATION,0
+Ahousaht,LOCATION,0
+Hot Springs Cove,LOCATION,0
+Fort Ware,LOCATION,0
+Kwadacha,LOCATION,0
+Toad River,LOCATION,0
+Good Hope Lake,LOCATION,0
+Vancouver General Hospital,FACILITY,0
+St. Paul's Hospital,FACILITY,0
+Lions Gate Hospital,FACILITY,0
+Royal Columbian Hospital,FACILITY,0
+Surrey Memorial Hospital,FACILITY,0
+Burnaby Hospital,FACILITY,0
+Richmond Hospital,FACILITY,0
+BC Children's Hospital,FACILITY,0
+BC Women's Hospital,FACILITY,0
+Royal Jubilee Hospital,FACILITY,0
+Victoria General Hospital,FACILITY,0
+Nanaimo Regional General Hospital,FACILITY,0
+Kelowna General Hospital,FACILITY,0
+Royal Inland Hospital,FACILITY,0
+University Hospital of Northern BC,FACILITY,0
+Tofino General Hospital,FACILITY,0
+Bella Coola General Hospital,FACILITY,0
+Mills Memorial Hospital,FACILITY,0
+Prince Rupert Regional Hospital,FACILITY,0
+Fort St. John Hospital,FACILITY,0
+Penticton Regional Hospital,FACILITY,0
+Vernon Jubilee Hospital,FACILITY,0
+Kootenay Boundary Regional Hospital,FACILITY,0
+Kootenay Lake Hospital,FACILITY,0
+East Kootenay Regional Hospital,FACILITY,0
+Cariboo Memorial Hospital,FACILITY,0
+G.R. Baker Memorial Hospital,FACILITY,0
+Campbell River Hospital,FACILITY,0
+North Island Hospital,FACILITY,0
+Cowichan District Hospital,FACILITY,0
+West Coast General Hospital,FACILITY,0
+Port Hardy Hospital,FACILITY,0
+Abbotsford Regional Hospital,FACILITY,0
+Chilliwack General Hospital,FACILITY,0
+Langley Memorial Hospital,FACILITY,0
+Peace Arch Hospital,FACILITY,0
+Ridge Meadows Hospital,FACILITY,0
+Eagle Ridge Hospital,FACILITY,0
+Mount Saint Joseph Hospital,FACILITY,0
+UBC Hospital,FACILITY,0
+Squamish General Hospital,FACILITY,0
+Sechelt Hospital,FACILITY,0
+qathet General Hospital,FACILITY,0
+Powell River General Hospital,FACILITY,0
+bush pilot,OCCUPATION,0
+floatplane pilot,OCCUPATION,0
+float plane pilot,OCCUPATION,0
+helicopter pilot,OCCUPATION,0
+charter pilot,OCCUPATION,0
+airline pilot,OCCUPATION,0
+commercial fisher,OCCUPATION,0
+commercial fisherman,OCCUPATION,0
+fishing guide,OCCUPATION,0
+hunting guide,OCCUPATION,0
+outfitter,OCCUPATION,1
+tree planter,OCCUPATION,0
+faller,OCCUPATION,1
+heli-logger,OCCUPATION,0
+logger,OCCUPATION,1
+log scaler,OCCUPATION,0
+choker setter,OCCUPATION,0
+sawmill worker,OCCUPATION,0
+millwright,OCCUPATION,0
+underground miner,OCCUPATION,0
+miner,OCCUPATION,1
+prospector,OCCUPATION,0
+lighthouse keeper,OCCUPATION,0
+ferry captain,OCCUPATION,0
+tugboat operator,OCCUPATION,0
+tugboat captain,OCCUPATION,0
+deckhand,OCCUPATION,1
+longshoreman,OCCUPATION,0
+rancher,OCCUPATION,0
+cattle rancher,OCCUPATION,0
+orchardist,OCCUPATION,0
+winemaker,OCCUPATION,0
+vineyard owner,OCCUPATION,0
+beekeeper,OCCUPATION,0
+oyster farmer,OCCUPATION,0
+shellfish farmer,OCCUPATION,0
+salmon farmer,OCCUPATION,0
+fish farmer,OCCUPATION,0
+trapper,OCCUPATION,0
+avalanche technician,OCCUPATION,0
+ski patroller,OCCUPATION,0
+ski instructor,OCCUPATION,0
+mountain guide,OCCUPATION,0
+heli-ski guide,OCCUPATION,0
+park ranger,OCCUPATION,0
+conservation officer,OCCUPATION,0
+wildfire fighter,OCCUPATION,0
+smokejumper,OCCUPATION,0
+RCMP officer,OCCUPATION,0
+Mountie,OCCUPATION,1
+police chief,OCCUPATION,0
+fire chief,OCCUPATION,0
+coroner,OCCUPATION,0
+judge,OCCUPATION,1
+Crown prosecutor,OCCUPATION,0
+mayor,OCCUPATION,0
+city councillor,OCCUPATION,0
+band councillor,OCCUPATION,0
+MLA,OCCUPATION,1
+MP,OCCUPATION,1
+school principal,OCCUPATION,0
+school superintendent,OCCUPATION,0
+university president,OCCUPATION,0
+pastor,OCCUPATION,1
+priest,OCCUPATION,1
+imam,OCCUPATION,0
+rabbi,OCCUPATION,0
+newspaper editor,OCCUPATION,0
+radio host,OCCUPATION,0
+news anchor,OCCUPATION,0
+Olympic athlete,OCCUPATION,0
+Olympian,OCCUPATION,0
+NHL player,OCCUPATION,0
+professional hockey player,OCCUPATION,0
+professional athlete,OCCUPATION,0
+country singer,OCCUPATION,0
+film director,OCCUPATION,0
+bestselling author,OCCUPATION,0
+restaurant owner,OCCUPATION,0
+hotel owner,OCCUPATION,0
+general store owner,OCCUPATION,0
+postmaster,OCCUPATION,0
+long-haul trucker,OCCUPATION,0
+heavy equipment operator,OCCUPATION,0
+crane operator,OCCUPATION,0
+pipeline worker,OCCUPATION,0
+oil rig worker,OCCUPATION,0
+wind turbine technician,OCCUPATION,0
+astronomer,OCCUPATION,0
+marine biologist,OCCUPATION,0
+archaeologist,OCCUPATION,0
+diplomat,OCCUPATION,0
+air traffic controller,OCCUPATION,0
+train engineer,OCCUPATION,0
+locomotive engineer,OCCUPATION,0
+whale watching guide,OCCUPATION,0
+kayak guide,OCCUPATION,0
+surf instructor,OCCUPATION,0
+dog musher,OCCUPATION,0
+zookeeper,OCCUPATION,0
+veterinarian,OCCUPATION,0
+funeral director,OCCUPATION,0
+Fraser Canyon Hospital,FACILITY,0
