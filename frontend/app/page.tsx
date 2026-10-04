@@ -1,120 +1,113 @@
 "use client";
 
-import { useState } from "react";
-import { SAMPLE_DOCS, entitiesOf, defaultMasked, type ScrubbedDoc } from "../lib/mockData";
-import Header from "./components/Header";
-import StepIndicator from "./components/StepIndicator";
-import UploadStep from "./components/UploadStep";
-import ReviewStep from "./components/ReviewStep";
-import ChatStep from "./components/ChatStep";
+import { useEffect, useState } from "react";
+import * as api from "../lib/api";
+import type { Doc, Flag, NewDocument } from "../lib/types";
+import ChatStep, { type ChatMessage } from "./components/ChatStep";
 import Loading from "./components/Loading";
+import ReviewStep from "./components/ReviewStep";
+import Shell, { type Step } from "./components/Shell";
+import UploadStep from "./components/UploadStep";
 
-export type Step = "upload" | "review" | "chat";
+const SCAN_STEPS = ["Extracting text", "Pass 1: Presidio", "Pass 2: our model", "Pass 3: clinical terms"];
+const FINALIZE_STEPS = ["Creating pseudonyms", "Shifting dates", "Saving the mapping to the vault"];
 
-// A document the user has finished reviewing, with their masking decisions.
-export type ContextDoc = {
-  doc: ScrubbedDoc;
-  masked: Record<string, boolean>;
-  active: boolean; // included in the chat context
+const HEADINGS: Record<Step, [string, string]> = {
+  upload: ["Add a document", "Upload a PDF or paste a note. Scrubs flags identifiers before anything goes to Gemini."],
+  review: ["Review", "Check every flagged item. Masked items are replaced with pseudonyms before sending."],
+  chat: ["Chat", "Gemini receives pseudonymized text only. Answers are re-identified on your screen."],
 };
 
-const initialMask = (doc: ScrubbedDoc) =>
-  Object.fromEntries(entitiesOf(doc).map((ent) => [ent.id, defaultMasked(ent)]));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Home() {
+  const [docs, setDocs] = useState<Doc[]>([]);
   const [step, setStep] = useState<Step>("upload");
-  const [loading, setLoading] = useState<string[] | null>(null);
-  const [current, setCurrent] = useState<ScrubbedDoc | null>(null);
-  const [masked, setMasked] = useState<Record<string, boolean>>({});
-  const [contextDocs, setContextDocs] = useState<ContextDoc[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [chatIds, setChatIds] = useState<string[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState<{ title: string; steps: string[] } | null>(null);
 
-  // Fake a pipeline run so the loading states can be demoed.
-  const runWithLoading = (messages: string[], then: () => void) => {
-    setLoading(messages);
-    setTimeout(() => {
+  useEffect(() => {
+    api.listDocuments().then(setDocs);
+  }, []);
+
+  const current = docs.find((d) => d.id === currentId) ?? null;
+  const readyDocs = docs.filter((d) => d.status === "ready");
+
+  const upsert = (doc: Doc) =>
+    setDocs((ds) => (ds.some((d) => d.id === doc.id) ? ds.map((d) => (d.id === doc.id ? doc : d)) : [doc, ...ds]));
+
+  const withLoading = async <T,>(title: string, steps: string[], work: Promise<T>) => {
+    setLoading({ title, steps });
+    try {
+      const [result] = await Promise.all([work, wait(steps.length * 400 + 300)]);
+      return result;
+    } finally {
       setLoading(null);
-      then();
-    }, 1800);
+    }
   };
 
-  const handleUpload = (file: File | null) => {
-    // Mock: cycle through the sample documents regardless of the file chosen.
-    const sample = SAMPLE_DOCS[contextDocs.length % SAMPLE_DOCS.length];
-    const doc = { ...sample, fileName: file?.name ?? sample.fileName };
-    runWithLoading(
-      ["Extracting text from PDF", "Pass 1: Presidio identifiers", "Pass 2: clinical model"],
-      () => {
-        setCurrent(doc);
-        setMasked(initialMask(doc));
-        setStep("review");
-      },
-    );
+  const scan = async (input: NewDocument) => {
+    const doc = await withLoading("Scanning document", SCAN_STEPS, api.createDocument(input));
+    upsert(doc);
+    setCurrentId(doc.id);
+    setStep("review");
   };
 
-  const handleConfirmReview = () => {
+  const setMasked = async (flag: Flag, masked: boolean) => {
     if (!current) return;
-    runWithLoading(["Generating consistent pseudonyms", "Shifting dates", "Storing mapping in vault"], () => {
-      setContextDocs((docs) => [
-        ...docs.filter((d) => d.doc.id !== current.id),
-        { doc: current, masked, active: true },
-      ]);
-      setStep("chat");
-    });
+    upsert(await api.setFlagMasked(current.id, flag.flag_code, masked));
   };
 
-  const goTo = (target: Step) => {
-    if (target === "review" && !current) return;
-    if (target === "chat" && contextDocs.length === 0) return;
-    setStep(target);
+  const reset = async () => {
+    if (!current) return;
+    for (const f of current.flags) {
+      const def = f.tier !== "low";
+      if (!f.locked && f.masked !== def) upsert(await api.setFlagMasked(current.id, f.flag_code, def));
+    }
   };
+
+  const finish = async () => {
+    if (!current) return;
+    const doc = await withLoading("Preparing for chat", FINALIZE_STEPS, api.finalizeDocument(current.id));
+    upsert(doc);
+    setChatIds((ids) => (ids.includes(doc.id) ? ids : [...ids, doc.id]));
+    setStep("chat");
+  };
+
+  const openReview = (doc: Doc) => {
+    setCurrentId(doc.id);
+    setStep("review");
+  };
+
+  const [title, subtitle] = HEADINGS[step];
 
   return (
-    <>
-      <Header />
-      <main className="scrubs-main">
-        <div className="grid-container">
-          <StepIndicator
-            step={step}
-            canReview={current !== null}
-            canChat={contextDocs.length > 0}
-            onSelect={goTo}
-          />
-          {loading ? (
-            <Loading messages={loading} />
-          ) : step === "upload" ? (
-            <UploadStep
-              onUpload={handleUpload}
-              loadedCount={contextDocs.length}
-              onSkipToChat={contextDocs.length ? () => setStep("chat") : undefined}
-            />
-          ) : step === "review" && current ? (
-            <ReviewStep
-              doc={current}
-              masked={masked}
-              setMasked={setMasked}
-              onBack={() => setStep("upload")}
-              onConfirm={handleConfirmReview}
-            />
-          ) : (
-            <ChatStep
-              contextDocs={contextDocs}
-              setContextDocs={setContextDocs}
-              onBack={() => setStep(current ? "review" : "upload")}
-              onAddDocument={() => setStep("upload")}
-              onEditDocument={(cd) => {
-                setCurrent(cd.doc);
-                setMasked(cd.masked);
-                setStep("review");
-              }}
-            />
-          )}
-        </div>
-      </main>
-      <footer className="scrubs-footer">
-        <div className="grid-container">
-          StormHacks 2026 prototype. Synthetic data only. Only pseudonymized text is sent to Gemini.
-        </div>
-      </footer>
-    </>
+    <Shell
+      step={step}
+      enabled={{ upload: true, review: current !== null, chat: readyDocs.length > 0 }}
+      onSelect={setStep}
+      title={title}
+      subtitle={subtitle}
+    >
+      {loading ? (
+        <Loading title={loading.title} steps={loading.steps} />
+      ) : step === "review" && current ? (
+        <ReviewStep doc={current} onSetMasked={setMasked} onReset={reset} onDone={finish} />
+      ) : step === "chat" ? (
+        <ChatStep
+          readyDocs={readyDocs}
+          selectedIds={chatIds}
+          setSelectedIds={setChatIds}
+          messages={messages}
+          setMessages={setMessages}
+          onAddDocument={() => setStep("upload")}
+          onReview={openReview}
+        />
+      ) : (
+        <UploadStep docs={docs} onScan={scan} onOpen={openReview} />
+      )}
+    </Shell>
   );
 }

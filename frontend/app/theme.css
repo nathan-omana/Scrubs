@@ -1,0 +1,52 @@
+/* Theme tokens. The design system is still TBD (CLAUDE.md 11.1), so every colour,
+   font, and size the UI uses lives here and can be swapped in one place.
+   Current values follow the teal clinical mockup. */
+
+:root {
+  /* Type */
+  --font-sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-xs: 0.72rem;
+  --text-sm: 0.82rem;
+  --text-md: 0.9rem;
+  --text-lg: 1.05rem;
+  --text-xl: 1.4rem;
+
+  /* Surfaces */
+  --bg: #edf2f1;
+  --surface: #ffffff;
+  --surface-muted: #f5f8f7;
+  --border: #d4dfdd;
+  --border-strong: #a9bcb9;
+
+  /* Text */
+  --text: #172a2d;
+  --text-muted: #5a6d70;
+
+  /* Accent: navigation, primary actions, selection */
+  --accent: #1f4f55;
+  --accent-hover: #163c41;
+  --accent-contrast: #ffffff;
+  --accent-soft: #dfecea;
+  --accent-text: #1f5f66;
+  --focus: #2b8a94;
+
+  /* Tiers. Only used to mean tier. Always paired with a HIGH / MED / LOW text tag. */
+  --tier-high: #b42318;
+  --tier-high-bg: #fde6e3;
+  --tier-med: #a85f00;
+  --tier-med-bg: #fdefd2;
+  --tier-low: #2d7444;
+  --tier-low-bg: #e0f1e5;
+
+  /* Shape and spacing */
+  --radius: 6px;
+  --radius-sm: 4px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --sidebar-width: 232px;
+}
