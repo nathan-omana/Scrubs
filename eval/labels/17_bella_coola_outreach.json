@@ -1,0 +1,86 @@
+[
+ {
+  "start": 12,
+  "end": 23,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Bella Coola"
+ },
+ {
+  "start": 43,
+  "end": 49,
+  "label": "Date",
+  "tier": "med",
+  "text": "Aug 19"
+ },
+ {
+  "start": 52,
+  "end": 66,
+  "label": "Person",
+  "tier": "high",
+  "text": "Walter Nygaard"
+ },
+ {
+  "start": 75,
+  "end": 149,
+  "label": "Person description",
+  "tier": "med",
+  "text": "the bearded man who sells smoked salmon from the blue trailer by the wharf"
+ },
+ {
+  "start": 213,
+  "end": 226,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "osteomyelitis"
+ },
+ {
+  "start": 246,
+  "end": 273,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "peripheral arterial disease"
+ },
+ {
+  "start": 275,
+  "end": 286,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "ESR 88 mm/h"
+ },
+ {
+  "start": 296,
+  "end": 306,
+  "label": "Drug",
+  "tier": "low",
+  "text": "cephalexin"
+ },
+ {
+  "start": 307,
+  "end": 317,
+  "label": "Dose",
+  "tier": "low",
+  "text": "500 mg QID"
+ },
+ {
+  "start": 327,
+  "end": 331,
+  "label": "Person",
+  "tier": "high",
+  "text": "Erik"
+ },
+ {
+  "start": 333,
+  "end": 380,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "who skippers the band's commercial fishing boat"
+ },
+ {
+  "start": 422,
+  "end": 450,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Bella Coola General Hospital"
+ }
+]

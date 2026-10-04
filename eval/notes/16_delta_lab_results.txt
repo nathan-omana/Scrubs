@@ -1,0 +1,10 @@
+LAB RESULTS LETTER
+Patient: Gurpreet Dhillon
+Address: 11871 84 Avenue, Delta, BC V4C 2L7
+Phone: 604-555-0175   PHN: 9815 188 447
+Collected: 2026-09-27
+
+Results: HbA1c 9.1%, LDL 3.4 mmol/L, eGFR 52.
+Interpretation: type 2 diabetes, poorly controlled, and CKD G3a.
+Increase metformin to 1000 mg BID and add empagliflozin 10 mg daily. Repeat labs in 3 months.
+Ordering physician: Dr. Mei Ling Zhou

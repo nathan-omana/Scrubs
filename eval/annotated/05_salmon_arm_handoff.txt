@@ -1,0 +1,5 @@
+SBAR handoff, 4 West, 0700
+S: Rm 412, [[Mr. Harold Bjornson|Person]], [[93|Age]], post-op day 2 right hip hemiarthroplasty.
+B: Fell at his care home, [[Shuswap Lodge in Salmon Arm|Location description]], on [[Sept 30|Date]]. Hx [[Parkinson's disease|Diagnosis]], [[CKD stage 3|Diagnosis]]. [[Former mayor of Salmon Arm|Unique role]], so expect visitors and media calls. No information to callers.
+A: Pain controlled on [[hydromorphone|Drug]] [[1 mg PO q4h PRN|Dose]]. Mild [[delirium|Diagnosis]] overnight. [[Hgb 94 g/L|Lab value]]. [[Sinemet|Drug]] [[100/25 one tab QID|Dose]] must be given on time.
+R: Granddaughter [[Ingrid|Person]] ([[604-555-0122|Phone]]) is the contact. Physio to assess today.

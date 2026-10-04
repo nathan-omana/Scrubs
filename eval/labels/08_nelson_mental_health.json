@@ -1,0 +1,93 @@
+[
+ {
+  "start": 22,
+  "end": 35,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 16, 2026"
+ },
+ {
+  "start": 37,
+  "end": 51,
+  "label": "Person",
+  "tier": "high",
+  "text": "Marcus Delgado"
+ },
+ {
+  "start": 118,
+  "end": 124,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Nelson"
+ },
+ {
+  "start": 141,
+  "end": 163,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "apprentice electrician"
+ },
+ {
+  "start": 169,
+  "end": 191,
+  "label": "Employer",
+  "tier": "med",
+  "text": "Kootenay Line Services"
+ },
+ {
+  "start": 202,
+  "end": 236,
+  "label": "Person description",
+  "tier": "med",
+  "text": "large raven tattoo across his neck"
+ },
+ {
+  "start": 262,
+  "end": 303,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "his older brother died by suicide in 2019"
+ },
+ {
+  "start": 318,
+  "end": 343,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "major depressive disorder"
+ },
+ {
+  "start": 365,
+  "end": 373,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "PHQ-9 22"
+ },
+ {
+  "start": 380,
+  "end": 401,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "cannabis use disorder"
+ },
+ {
+  "start": 441,
+  "end": 451,
+  "label": "Drug",
+  "tier": "low",
+  "text": "sertraline"
+ },
+ {
+  "start": 452,
+  "end": 463,
+  "label": "Dose",
+  "tier": "low",
+  "text": "50 mg daily"
+ },
+ {
+  "start": 526,
+  "end": 538,
+  "label": "Phone",
+  "tier": "high",
+  "text": "250-555-0114"
+ }
+]

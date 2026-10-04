@@ -1,0 +1,295 @@
+{
+ "set": "test",
+ "notes": 20,
+ "spacy_model": "en_core_web_sm",
+ "gliner": true,
+ "gliner_model": "urchade/gliner_medium-v2.1",
+ "gliner_threshold": 0.3,
+ "systems": {
+  "presidio": {
+   "tier": {
+    "high": [
+     57,
+     67
+    ],
+    "med": [
+     54,
+     68
+    ],
+    "low": [
+     37,
+     132
+    ]
+   },
+   "label": {
+    "Person": [
+     38,
+     45
+    ],
+    "Date": [
+     22,
+     24
+    ],
+    "PHN": [
+     5,
+     5
+    ],
+    "Unique role": [
+     6,
+     9
+    ],
+    "Lab value": [
+     5,
+     23
+    ],
+    "Drug": [
+     5,
+     40
+    ],
+    "Diagnosis": [
+     5,
+     33
+    ],
+    "Dose": [
+     21,
+     34
+    ],
+    "Phone": [
+     7,
+     7
+    ],
+    "Location description": [
+     15,
+     18
+    ],
+    "MRN": [
+     2,
+     2
+    ],
+    "License": [
+     0,
+     2
+    ],
+    "Employer": [
+     4,
+     4
+    ],
+    "Person description": [
+     0,
+     2
+    ],
+    "Family detail": [
+     5,
+     8
+    ],
+    "Age": [
+     2,
+     3
+    ],
+    "Email": [
+     2,
+     2
+    ],
+    "Address": [
+     3,
+     4
+    ],
+    "Clinical term": [
+     1,
+     2
+    ]
+   },
+   "seconds_per_note": 0.042
+  },
+  "rules": {
+   "tier": {
+    "high": [
+     54,
+     67
+    ],
+    "med": [
+     46,
+     68
+    ],
+    "low": [
+     4,
+     132
+    ]
+   },
+   "label": {
+    "Person": [
+     36,
+     45
+    ],
+    "Date": [
+     22,
+     24
+    ],
+    "PHN": [
+     5,
+     5
+    ],
+    "Unique role": [
+     5,
+     9
+    ],
+    "Lab value": [
+     1,
+     23
+    ],
+    "Drug": [
+     1,
+     40
+    ],
+    "Diagnosis": [
+     0,
+     33
+    ],
+    "Dose": [
+     2,
+     34
+    ],
+    "Phone": [
+     7,
+     7
+    ],
+    "Location description": [
+     11,
+     18
+    ],
+    "MRN": [
+     0,
+     2
+    ],
+    "License": [
+     0,
+     2
+    ],
+    "Employer": [
+     1,
+     4
+    ],
+    "Person description": [
+     0,
+     2
+    ],
+    "Family detail": [
+     5,
+     8
+    ],
+    "Age": [
+     2,
+     3
+    ],
+    "Email": [
+     2,
+     2
+    ],
+    "Address": [
+     4,
+     4
+    ],
+    "Clinical term": [
+     0,
+     2
+    ]
+   },
+   "seconds_per_note": 0.027
+  },
+  "ours": {
+   "tier": {
+    "high": [
+     62,
+     67
+    ],
+    "med": [
+     65,
+     68
+    ],
+    "low": [
+     4,
+     132
+    ]
+   },
+   "label": {
+    "Person": [
+     43,
+     45
+    ],
+    "Date": [
+     22,
+     24
+    ],
+    "PHN": [
+     5,
+     5
+    ],
+    "Unique role": [
+     9,
+     9
+    ],
+    "Lab value": [
+     1,
+     23
+    ],
+    "Drug": [
+     1,
+     40
+    ],
+    "Diagnosis": [
+     0,
+     33
+    ],
+    "Dose": [
+     2,
+     34
+    ],
+    "Phone": [
+     7,
+     7
+    ],
+    "Location description": [
+     18,
+     18
+    ],
+    "MRN": [
+     1,
+     2
+    ],
+    "License": [
+     0,
+     2
+    ],
+    "Employer": [
+     4,
+     4
+    ],
+    "Person description": [
+     1,
+     2
+    ],
+    "Family detail": [
+     8,
+     8
+    ],
+    "Age": [
+     3,
+     3
+    ],
+    "Email": [
+     2,
+     2
+    ],
+    "Address": [
+     4,
+     4
+    ],
+    "Clinical term": [
+     0,
+     2
+    ]
+   },
+   "seconds_per_note": 5.078
+  }
+ }
+}

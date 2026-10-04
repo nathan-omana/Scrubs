@@ -1,0 +1,86 @@
+[
+ {
+  "start": 27,
+  "end": 50,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Queen Victoria Hospital"
+ },
+ {
+  "start": 52,
+  "end": 66,
+  "label": "Person",
+  "tier": "high",
+  "text": "Riley Gauthier"
+ },
+ {
+  "start": 72,
+  "end": 118,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "a conservation officer stationed in Revelstoke"
+ },
+ {
+  "start": 146,
+  "end": 150,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dana"
+ },
+ {
+  "start": 154,
+  "end": 159,
+  "label": "Date",
+  "tier": "med",
+  "text": "Oct 1"
+ },
+ {
+  "start": 193,
+  "end": 202,
+  "label": "Drug",
+  "tier": "low",
+  "text": "zopiclone"
+ },
+ {
+  "start": 210,
+  "end": 230,
+  "label": "Dose",
+  "tier": "low",
+  "text": "15 tablets of 7.5 mg"
+ },
+ {
+  "start": 232,
+  "end": 264,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Acetaminophen level undetectable"
+ },
+ {
+  "start": 274,
+  "end": 291,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "suicidal ideation"
+ },
+ {
+  "start": 330,
+  "end": 334,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "PTSD"
+ },
+ {
+  "start": 391,
+  "end": 399,
+  "label": "Drug",
+  "tier": "low",
+  "text": "prazosin"
+ },
+ {
+  "start": 400,
+  "end": 408,
+  "label": "Dose",
+  "tier": "low",
+  "text": "2 mg qHS"
+ }
+]
