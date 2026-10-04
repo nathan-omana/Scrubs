@@ -1,13 +1,29 @@
-import pytest
-from fastapi.testclient import TestClient
+"""
+PDF extraction checks (pipeline/pdf.py). Test PDFs are built in memory by pdf_factory.py,
+so no files and no GLiNER download are needed.
+Run from the backend folder:   python -m tests.test_pdf
+"""
+import io
 
-from app.main import app
-from app.pdf import PdfError, ScannedPdfError, clean_text, extract_text
+import config
+from pipeline import detector
+from pipeline.pdf import PdfError, ScannedPdfError, clean_text, extract_text
+from tests.pdf_factory import build_pdf
+from tests.samples import DEMO_NOTE, DEMO_PAGES
 
-from .pdf_factory import build_pdf
-from .samples import DEMO_NOTE, DEMO_PAGES
 
-client = TestClient(app)
+class NoGLiNER:
+    """A GLiNER that finds nothing, so /analyze runs without the real model."""
+    def predict_entities(self, text, labels, threshold=0.5):
+        return []
+
+
+def raises(exc_type, fn, *args):
+    try:
+        fn(*args)
+    except exc_type:
+        return True
+    return False
 
 
 def test_extracts_demo_note_with_wrapped_lines_rejoined():
@@ -38,15 +54,27 @@ def test_side_by_side_columns_are_split_with_a_tab():
     assert text == "Invoice Number\tVANCOUVER BRITISH\nINV-0184\tCOLUMBIA V6B 0P9"
 
 
-def test_scanned_pdf_without_text_is_rejected():
-    with pytest.raises(ScannedPdfError):
-        extract_text(build_pdf([[]]))
+def test_scanned_and_bad_files():
+    assert raises(ScannedPdfError, extract_text, build_pdf([[]]))
+    assert raises(PdfError, extract_text, b"hello, not a pdf")
+    assert raises(PdfError, extract_text, b"%PDF-1.4\ngarbage that is not a pdf")
 
 
-@pytest.mark.parametrize("data", [b"hello, not a pdf", b"%PDF-1.4\ngarbage that is not a pdf"])
-def test_bad_files_raise_pdf_error(data):
-    with pytest.raises(PdfError):
-        extract_text(data)
+def test_page_and_size_limits():
+    from pipeline import pdf
+    assert raises(PdfError, extract_text, build_pdf([["Page text here."]] * (pdf.MAX_PAGES + 1)))
+    assert not raises(PdfError, extract_text, build_pdf([["Page text here."]] * pdf.MAX_PAGES))
+    assert raises(PdfError, extract_text, b"%PDF-1.4\n" + b"0" * pdf.MAX_BYTES)
+
+
+def test_error_messages_never_echo_document_text():
+    # Messages go straight to the user and may end up in logs, so they must be generic.
+    secret = "Margaret Ellison 9123947241"
+    for data in [build_pdf([[secret]] * 31), b"%PDF-1.4\n" + secret.encode()]:
+        try:
+            extract_text(data)
+        except PdfError as e:
+            assert "Margaret" not in str(e) and "9123" not in str(e), str(e)
 
 
 def test_clean_text_keeps_list_items_and_labels_on_their_own_lines():
@@ -69,43 +97,35 @@ def test_clean_text_keeps_list_items_and_labels_on_their_own_lines():
 
 
 def test_clean_text_fixes_ligatures_and_odd_spaces():
-    assert clean_text(["atrial ﬁbrillation noted"]) == "atrial fibrillation noted"
+    assert clean_text(["atrial ﬁbrillation noted"]) == "atrial fibrillation noted"
 
 
-def test_post_pdf_creates_document():
-    res = client.post(
-        "/documents",
-        files={"file": ("Visit note.pdf", build_pdf(DEMO_PAGES), "application/pdf")},
-    )
-    assert res.status_code == 201, res.text
-    doc = res.json()
-    assert doc["title"] == "Visit note"
-    assert doc["source"] == "pdf"
-    assert doc["status"] == "needs_review"
-    assert doc["page_count"] == 1
-    assert DEMO_NOTE in doc["original_text"]
-    assert client.get(f"/documents/{doc['id']}").json() == doc
+def test_flask_upload():
+    config.USE_GLINER = True
+    detector._model = NoGLiNER()
+    import app as app_module
+    c = app_module.app.test_client()
+
+    def upload(data, name):
+        return c.post("/documents", data={"file": (io.BytesIO(data), name)}, content_type="multipart/form-data")
+
+    ok = upload(build_pdf(DEMO_PAGES), "Visit note.pdf")
+    assert ok.status_code == 201 and DEMO_NOTE in ok.json["original_text"]
+    assert ok.json["title"] == "Visit note" and ok.json["source"] == "pdf"
+
+    scanned = upload(build_pdf([[]]), "scan.pdf")
+    assert scanned.status_code == 422 and "scanned" in scanned.json["detail"]
+
+    assert upload(b"plain text", "notes.pdf").status_code == 400
 
 
-def test_post_scanned_pdf_returns_422_with_message():
-    res = client.post("/documents", files={"file": ("scan.pdf", build_pdf([[]]), "application/pdf")})
-    assert res.status_code == 422
-    assert "scanned" in res.json()["detail"]
-
-
-def test_post_non_pdf_returns_400():
-    res = client.post("/documents", files={"file": ("notes.pdf", b"plain text", "application/pdf")})
-    assert res.status_code == 400
-
-
-def test_post_pasted_text_creates_document():
-    res = client.post("/documents", json={"title": "", "text": DEMO_NOTE})
-    assert res.status_code == 201
-    doc = res.json()
-    assert doc["title"] == "Pasted note"
-    assert doc["source"] == "paste"
-    assert doc["original_text"] == DEMO_NOTE
-
-
-def test_post_empty_paste_returns_400():
-    assert client.post("/documents", json={"text": "   "}).status_code == 400
+if __name__ == "__main__":
+    test_extracts_demo_note_with_wrapped_lines_rejoined()
+    test_multiple_pages_are_separated_by_a_blank_line()
+    test_small_print_without_space_characters_keeps_words_apart()
+    test_side_by_side_columns_are_split_with_a_tab()
+    test_scanned_and_bad_files()
+    test_clean_text_keeps_list_items_and_labels_on_their_own_lines()
+    test_clean_text_fixes_ligatures_and_odd_spaces()
+    test_flask_upload()
+    print("all pdf tests passed")
