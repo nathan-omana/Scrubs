@@ -17,7 +17,7 @@ import config
 import gemini_client
 import pipeline
 from pipeline import lexicon, rules, tagging
-from pipeline.extract import extract_text
+from pipeline.extract import PdfError, ScannedPdfError, extract_text
 
 
 class InMemoryRequest(Request):
@@ -57,7 +57,12 @@ def analyze():
     # Accept either an uploaded file or raw text (handy for testing with curl).
     if "file" in request.files:
         f = request.files["file"]
-        text = extract_text(f.filename, f.read())
+        try:
+            text = extract_text(f.filename, f.read())
+        except ScannedPdfError as e:          # no text layer: say so, so the user can paste instead
+            return jsonify(error=str(e)), 422
+        except PdfError as e:                 # not a PDF, damaged, password protected, too many pages
+            return jsonify(error=str(e)), 400
     else:
         text = (request.get_json(silent=True) or {}).get("text", "")
     if not text.strip():
