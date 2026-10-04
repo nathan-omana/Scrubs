@@ -1,5 +1,5 @@
 // Synthetic documents and a fake detector for the UI. Nothing here is real patient data.
-// The backend replaces all of this (Presidio + our model + TiDB vault).
+// The backend replaces all of this (Presidio, our model and the BC lexicon).
 
 import type { Doc, Flag, Tier } from "./types";
 
@@ -80,7 +80,7 @@ const DISCHARGE_SPECS: Spec[] = [
   s("31877", "Prescriber license", "high", "Prescriber license number", "presidio", { prefix: "LICENSE" }),
   s("Community-acquired pneumonia", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
   s("atrial fibrillation", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
-  s("Fraser Canyon Hospital", "Location", "med", "Hospital in a small town", "model", { prefix: "LOC" }),
+  s("Fraser Canyon Hospital", "Location", "med", "Hospital in a small town", "lexicon", { prefix: "LOC" }),
   s("Ceftriaxone", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
   s("1 g", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
   s("Diltiazem", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),

@@ -181,7 +181,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
                 <div className="flag-row__text">&ldquo;{f.text}&rdquo;</div>
                 <div className="flag-row__reason">
                   {f.reason}
-                  {f.source === "model" && f.tier !== "low" && " · found by our model"}
+                  {(f.source === "model" || f.source === "lexicon") && f.tier !== "low" && " · Found by our model"}
                 </div>
                 <div className="flag-row__action">
                   {f.locked ? (
