@@ -126,11 +126,24 @@ def build_app():
             return send_from_directory(WEB_DIR, path)
         abort(404)
 
+    # An unexpected error shows its type and where it happened, never values or note text,
+    # so a 500 in the desktop app can be traced without a console.
+    from werkzeug.exceptions import HTTPException
+
+    @flask_app.errorhandler(Exception)
+    def desktop_error(e):
+        if isinstance(e, HTTPException):
+            return e
+        import traceback
+        last = traceback.extract_tb(e.__traceback__)[-1] if e.__traceback__ else None
+        where = f" in {Path(last.filename).name} line {last.lineno}" if last else ""
+        return {"detail": f"Something went wrong ({type(e).__name__}{where}). Try again."}, 500
+
     return flask_app
 
 
 def warm_up() -> None:
-    """Load GLiNER in the background so the first scan isn't slow."""
+    """Load GLiNER now so the first scan isn't slow and never races the model load."""
     try:
         import pipeline
         pipeline.analyze("Warm up.")
@@ -199,9 +212,11 @@ def start_backend(port: int) -> str:
     from waitress import serve
 
     threading.Thread(target=lambda: serve(flask_app, host="127.0.0.1", port=port, threads=8), daemon=True).start()
-    threading.Thread(target=warm_up, daemon=True).start()
     if not wait_until_up(url):
         raise RuntimeError("The local server did not start.")
+    # Load GLiNER before showing the app. If a scan arrives while the model is still loading,
+    # two threads load it at once and the scan can fail with a 500.
+    warm_up()
     return url
 
 

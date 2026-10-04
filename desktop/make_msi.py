@@ -21,7 +21,8 @@ WIX = Path(os.getenv("WIX", DESKTOP / "build" / "tools" / "wix"))
 VERSION = os.getenv("SCRUBS_VERSION", "0.1.0")
 # Never change this: Windows uses it to recognise newer versions of the same app.
 UPGRADE_CODE = "6B0F3B52-8E5D-4C1A-9B7E-2F4A1C9D7E31"
-LICENSE_RTF = DESKTOP / "installer" / "license.rtf"
+ART = DESKTOP / "installer"            # made by installer/make_art.py
+LICENSE_RTF = ART / "license.rtf"
 
 PRODUCT_WXS = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -35,6 +36,10 @@ PRODUCT_WXS = f"""<?xml version="1.0" encoding="UTF-8"?>
     <!-- Standard wizard: welcome, notice, choose folder, ready, progress, finish. -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
     <WixVariable Id="WixUILicenseRtf" Value="{LICENSE_RTF}" />
+    <WixVariable Id="WixUIBannerBmp" Value="{ART / 'banner.bmp'}" />
+    <WixVariable Id="WixUIDialogBmp" Value="{ART / 'dialog.bmp'}" />
+    <Icon Id="ScrubsIcon" SourceFile="{ART / 'scrubs.ico'}" />
+    <Property Id="ARPPRODUCTICON" Value="ScrubsIcon" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Open Scrubs" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
     <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]Scrubs.exe" />
@@ -56,13 +61,13 @@ PRODUCT_WXS = f"""<?xml version="1.0" encoding="UTF-8"?>
 
     <DirectoryRef Id="ProgramMenuFolder">
       <Component Id="StartMenuShortcut" Guid="3E1A6C0D-7B2F-4E59-A8D3-5C6B9F2E1A47" Win64="yes">
-        <Shortcut Id="StartMenuScrubs" Name="Scrubs" Target="[INSTALLFOLDER]Scrubs.exe" WorkingDirectory="INSTALLFOLDER" />
+        <Shortcut Id="StartMenuScrubs" Name="Scrubs" Target="[INSTALLFOLDER]Scrubs.exe" WorkingDirectory="INSTALLFOLDER" Icon="ScrubsIcon" />
         <RegistryValue Root="HKCU" Key="Software\\Scrubs" Name="startmenu" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
     <DirectoryRef Id="DesktopFolder">
       <Component Id="DesktopShortcut" Guid="9C4D2B71-1F8A-4E3C-B6D5-7A2E8F0C3B19" Win64="yes">
-        <Shortcut Id="DesktopScrubs" Name="Scrubs" Target="[INSTALLFOLDER]Scrubs.exe" WorkingDirectory="INSTALLFOLDER" />
+        <Shortcut Id="DesktopScrubs" Name="Scrubs" Target="[INSTALLFOLDER]Scrubs.exe" WorkingDirectory="INSTALLFOLDER" Icon="ScrubsIcon" />
         <RegistryValue Root="HKCU" Key="Software\\Scrubs" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
