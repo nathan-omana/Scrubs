@@ -34,9 +34,13 @@ def analyze(text):
 
 
 def tag_everything(text):
-    r = analyze(text)
-    tagged, _ = tagging.tag_text(text, r["spans"], {s["id"] for s in r["spans"]})
-    return r, tagged
+    """Mask every flag (as if the clinician masked all), return (flags, pseudonymized text)."""
+    flags = analyze(text)
+    p = tagging.Pseudonyms()
+    for f in flags:
+        f["masked"] = True
+        f["pseudonym"] = p.get(config.TYPES[f["type"]][2], f["text"])
+    return flags, tagging.pseudonymize(text, flags)
 
 
 def test_sample_note_no_leaks():
@@ -44,7 +48,7 @@ def test_sample_note_no_leaks():
     for s in ["Margaret", "Ellison", "9123", "03/14/1951", "Campbell", "V0R 2Z0", "555-0142",
               "Tofino", "bush pilot", "74-year-old", "Claire", "claire.ellison", "Raj", "Patel"]:
         assert s.lower() not in tagged.lower(), f"leaked: {s}"
-    assert r["risk"] == "RED"
+    assert {f["tier"] for f in r} >= {"high", "med"}
 
 
 def test_sample_note_keeps_clinical_terms():
@@ -55,7 +59,7 @@ def test_sample_note_keeps_clinical_terms():
 
 
 def test_names_found_by_gliner_itself():
-    found = {s["text"]: s for s in analyze(NOTE)["spans"]}
+    found = {f["text"]: f for f in analyze(NOTE)}
     for name in ["Margaret Ellison", "Dr. Raj Patel"]:
         assert name in found and "gliner" in found[name]["found_by"], (name, found.get(name))
 
@@ -66,7 +70,7 @@ def test_name_at_the_end_of_a_long_paragraph():
     # family details, so a GLiNER blind spot there is a leak.
     filler = " ".join(["Vitals stable overnight, tolerating diet, mobilizing with walker."] * 40)
     text = filler + " Discussed plan with patient Margaret Ellison and her son.\n"
-    found = {s["text"]: s for s in analyze(text)["spans"]}
+    found = {f["text"]: f for f in analyze(text)}
     assert "Margaret Ellison" in found and "gliner" in found["Margaret Ellison"]["found_by"], \
         "GLiNER missed a name at the end of a long line"
 

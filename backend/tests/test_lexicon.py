@@ -35,8 +35,9 @@ def test_catches_occupation_gliner_missed():
     detector._model = NoGLiNER()
     import pipeline
     r = pipeline.analyze("Pt is a retired bush pilot who lives alone in Tofino.")
-    found = {s["text"]: s for s in r["spans"]}
+    found = {f["text"]: f for f in r}
     assert found["bush pilot"]["type"] == "OCCUPATION" and found["bush pilot"]["found_by"] == ["lexicon"]
+    assert found["bush pilot"]["source"] == "lexicon" and found["bush pilot"]["label"] == "Unique role"
     assert found["Tofino"]["type"] == "LOCATION"
 
 

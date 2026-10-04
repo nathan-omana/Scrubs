@@ -16,7 +16,7 @@ from pathlib import Path
 
 import config
 import gemini_client
-from pipeline import lexicon, rules, tagging
+from pipeline import lexicon
 from tests._util import run, use_fake_gliner
 from tests.pdf_factory import build_pdf
 
@@ -123,15 +123,15 @@ def client():
     return app_module.app.test_client()
 
 
-def full_flow(c):
-    """Upload -> tag everything -> chat. Returns the /chat response."""
-    r = c.post("/analyze", data={"file": (io.BytesIO(NOTE.encode()), "note.txt")},
+def full_flow(c, message="Draft a referral for Margaret Ellison"):
+    """Upload -> finalize (defaults) -> chat. Returns the /chat response."""
+    config.GEMINI_API_KEY = "test-key"
+    r = c.post("/documents", data={"file": (io.BytesIO(NOTE.encode()), "note.txt")},
                content_type="multipart/form-data")
-    assert r.status_code == 200, r.json
-    spans = r.json["spans"]
-    t = c.post("/tag", json={"text": r.json["text"], "spans": spans, "remove_ids": [s["id"] for s in spans]})
-    question = tagging.tag_question("Draft a referral for Margaret Ellison", t.json["mapping"])
-    return c.post("/chat", json={"tagged_note": t.json["tagged_text"], "history": [], "question": question})
+    assert r.status_code == 201, r.json
+    doc_id = r.json["id"]
+    assert c.post(f"/documents/{doc_id}/finalize").status_code == 200
+    return c.post("/chat", json={"document_ids": [doc_id], "message": message})
 
 
 # ---------- tests ----------
@@ -140,9 +140,9 @@ def test_detection_makes_no_network_calls():
     lexicon.LEXICON_SOURCE, lexicon._entries = "auto", None     # auto + no TIDB_HOST -> CSV
     c = client()
     with NoNetwork() as net:
-        r = c.post("/analyze", json={"text": NOTE})
-        assert r.status_code == 200
-        c.post("/analyze", data={"file": (io.BytesIO(build_pdf([[NOTE]])), "n.pdf")},
+        r = c.post("/documents", json={"title": "", "text": NOTE})
+        assert r.status_code == 201
+        c.post("/documents", data={"file": (io.BytesIO(build_pdf([[NOTE]])), "n.pdf")},
                content_type="multipart/form-data")
     assert net.attempts == [], net.attempts
 
@@ -151,12 +151,12 @@ def test_nothing_written_to_disk():
     c = client()
     gemini_client._client = FakeGenai()
     _writes.clear()
-    c.post("/analyze", data={"file": (io.BytesIO(build_pdf([[NOTE]] * 5)), "n.pdf")},
+    c.post("/documents", data={"file": (io.BytesIO(build_pdf([[NOTE]] * 5)), "n.pdf")},
            content_type="multipart/form-data")
     big_txt = NOTE.encode() + b"\n" + b"x" * 600_000                          # Werkzeug spills > 500 KB to disk by default
     config.MAX_TEXT_CHARS = 700_000
     try:
-        c.post("/analyze", data={"file": (io.BytesIO(big_txt), "n.txt")}, content_type="multipart/form-data")
+        c.post("/documents", data={"file": (io.BytesIO(big_txt), "n.txt")}, content_type="multipart/form-data")
     finally:
         config.MAX_TEXT_CHARS = 200_000
     full_flow(c)
@@ -168,7 +168,7 @@ def test_logs_hold_counts_only():
     gemini_client._client = FakeGenai()
     with LogCapture() as logs:
         full_flow(c)
-        c.post("/chat", json={"tagged_note": "PHN 9123947241", "history": [], "question": "hi"})
+        full_flow(c, message="Also write to jo.doe@example.com")          # blocked by the leak check
     assert logs.lines, "expected some log lines"
     joined = "\n".join(logs.lines)
     for s in SECRETS:
@@ -193,20 +193,44 @@ def test_gemini_never_receives_masked_values():
     assert "Parkinson's" in sent and "nitrofurantoin" in sent        # clinical content is kept
 
 
-def test_chat_blocks_raw_identifiers_anywhere_in_the_request():
+def test_patients_own_identifiers_in_the_message_are_pseudonymized():
     c = client()
     fake = FakeGenai()
     gemini_client._client = fake
-    cases = [
-        {"tagged_note": "PHN 9123 947 241", "history": [], "question": "hi"},
-        {"tagged_note": "ok", "history": [], "question": "email jo.doe@example.com"},
-        {"tagged_note": "ok", "history": [{"role": "user", "text": "PHN 9123947241"}], "question": "hi"},
-        {"tagged_note": "ok", "history": [{"role": "model", "text": "jo.doe@example.com"}], "question": "hi"},
-    ]
-    for body in cases:
-        r = c.post("/chat", json=body)
-        assert r.status_code == 400, body
+    r = full_flow(c, message="Referral for MARGARET ELLISON, PHN 9123 947 241, from Tofino")
+    assert r.status_code == 200 and r.json["identifier_count"] == 0, r.json
+    assert "[PATIENT_" in r.json["outbound_text"] and "[HCN_" in r.json["outbound_text"]
+    for s in ["Margaret", "Ellison", "9123", "Tofino"]:
+        assert s.lower() not in fake.requests[0].lower(), s
+
+
+def test_chat_blocks_identifiers_that_are_not_in_the_mapping():
+    c = client()
+    fake = FakeGenai()
+    gemini_client._client = fake
+    config.GEMINI_API_KEY = "test-key"
+    doc = c.post("/documents", json={"title": "", "text": "Pt seen for cough. Apixaban 5 mg BID."}).json
+    c.post(f"/documents/{doc['id']}/finalize")
+    for message in ["Send to jo.doe@example.com", "PHN is 9123947241", "PHN 9123.947.241"]:
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": message})
+        assert r.status_code == 200 and r.json["identifier_count"] >= 1, (message, r.json)
+        assert r.json["answer_with_pseudonyms"] == ""
     assert fake.requests == [], "a blocked request still reached Gemini"
+
+
+def test_unmasking_a_med_flag_sends_it_and_the_leak_check_allows_it():
+    # Unmasking is the clinician's decision, so the original is allowed out (and audited).
+    c = client()
+    fake = FakeGenai()
+    gemini_client._client = fake
+    config.GEMINI_API_KEY = "test-key"
+    doc = c.post("/documents", json={"title": "", "text": NOTE}).json
+    age = next(f for f in doc["flags"] if f["text"] == "74-year-old")
+    assert c.patch(f"/documents/{doc['id']}/flags/{age['flag_code']}", json={"masked": False}).status_code == 200
+    c.post(f"/documents/{doc['id']}/finalize")
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Summarize"})
+    assert r.json["identifier_count"] == 0 and "74-year-old" in fake.requests[0]
+    assert "Margaret" not in fake.requests[0]
 
 
 def test_only_allowed_files_import_network_libraries():
@@ -242,8 +266,8 @@ def test_cors_allows_the_frontend_origin_only():
 def test_uploads_over_the_size_limit_are_refused():
     c = client()
     too_big = b"x" * (config.MAX_UPLOAD_MB * 1024 * 1024 + 1)
-    r = c.post("/analyze", data={"file": (io.BytesIO(too_big), "n.txt")}, content_type="multipart/form-data")
-    assert r.status_code == 413
+    r = c.post("/documents", data={"file": (io.BytesIO(too_big), "n.txt")}, content_type="multipart/form-data")
+    assert r.status_code == 413 and "MB" in r.json["detail"]
 
 
 if __name__ == "__main__":

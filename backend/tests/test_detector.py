@@ -39,7 +39,11 @@ def test_labels_map_to_types():
     use_fake_gliner({label: label for label in ["person name", "doctor", "family member"]})
     text = "person name, doctor, family member"
     types = {text[s["start"]:s["end"]]: s["type"] for s in detector.detect(text)}
-    assert types == {"person name": "PERSON", "doctor": "PERSON", "family member": "RELATION"}
+    assert types == {"person name": "PERSON", "doctor": "PROVIDER", "family member": "RELATION"}
+
+
+def test_every_label_type_has_a_tier():
+    assert set(config.GLINER_LABELS.values()) <= set(config.TYPES)
 
 
 def test_every_label_has_a_type():

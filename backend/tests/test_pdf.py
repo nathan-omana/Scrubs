@@ -107,13 +107,14 @@ def test_flask_upload():
     c = app_module.app.test_client()
 
     def upload(data, name):
-        return c.post("/analyze", data={"file": (io.BytesIO(data), name)}, content_type="multipart/form-data")
+        return c.post("/documents", data={"file": (io.BytesIO(data), name)}, content_type="multipart/form-data")
 
     ok = upload(build_pdf(DEMO_PAGES), "Visit note.pdf")
-    assert ok.status_code == 200 and DEMO_NOTE in ok.json["text"]
+    assert ok.status_code == 201 and DEMO_NOTE in ok.json["original_text"]
+    assert ok.json["title"] == "Visit note" and ok.json["source"] == "pdf"
 
     scanned = upload(build_pdf([[]]), "scan.pdf")
-    assert scanned.status_code == 422 and "scanned" in scanned.json["error"]
+    assert scanned.status_code == 422 and "scanned" in scanned.json["detail"]
 
     assert upload(b"plain text", "notes.pdf").status_code == 400
 

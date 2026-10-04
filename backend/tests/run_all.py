@@ -8,7 +8,7 @@ Add --model to also run the real GLiNER tests (slower, needs the model downloade
 import subprocess
 import sys
 
-FILES = ["test_smoke", "test_lexicon", "test_pdf", "test_rules", "test_merge", "test_tagging",
+FILES = ["test_smoke", "test_lexicon", "test_pdf", "test_api", "test_rules", "test_merge", "test_tagging",
          "test_detector", "test_privacy"]
 
 if __name__ == "__main__":
