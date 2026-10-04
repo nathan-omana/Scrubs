@@ -1,0 +1,14 @@
+# Pin exact versions once things work (pip freeze > requirements.lock.txt)
+flask>=3.1
+python-dotenv>=1.0
+presidio-analyzer>=2.2
+gliner>=0.2.29          # pulls in torch + transformers (big download, CPU is fine)
+protobuf>=4.25          # GLiNER's DeBERTa tokenizer fails to load without it (transformers 5.x)
+pymysql>=1.1            # TiDB (MySQL-compatible) client, for the BC lexicon
+certifi                 # CA certificates for TiDB Cloud's required TLS
+pdfplumber>=0.11
+python-docx>=1.1
+google-genai>=1.0
+# spaCy language model used by Presidio. Install separately:
+#   python -m spacy download en_core_web_sm      (small, fast)
+#   python -m spacy download en_core_web_lg      (better names, ~400 MB)
