@@ -4,8 +4,9 @@
 
 :root {
   /* Type */
-  --font-sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Loaded in layout.tsx. BC Sans first in case it is installed, then its Noto Sans base. */
+  --font-sans: "BC Sans", var(--font-noto-sans), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-noto-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --text-xs: 0.72rem;
   --text-sm: 0.82rem;
   --text-md: 0.9rem;
