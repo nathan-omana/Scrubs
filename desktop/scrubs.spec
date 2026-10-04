@@ -53,6 +53,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="Scrubs",
+    icon=str(ROOT / "desktop" / "installer" / "scrubs.ico"),
     console=CONSOLE,
     upx=False,
 )
