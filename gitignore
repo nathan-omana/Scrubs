@@ -1,0 +1,74 @@
+# ---------- Secrets (never commit API keys) ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# ---------- Editors / IDEs ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# ---------- OS files ----------
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+venv/
+.venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---------- Node / frontend ----------
+node_modules/
+.next/
+out/
+.vercel/
+.turbo/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- ML models and data ----------
+# Model weights are large; share them via Hugging Face Hub or Google Drive instead
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.ckpt
+models/checkpoints/
+wandb/
+runs/
+
+# Never commit real patient documents. Keep only synthetic samples in data/samples/
+data/raw/
+data/private/
+*.pdf
+!data/samples/*.pdf
+
+# ---------- Logs and temp ----------
+*.log
+logs/
+tmp/
+temp/
