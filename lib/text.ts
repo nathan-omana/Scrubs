@@ -7,6 +7,7 @@ export const segmentsOf = (doc: Doc): Segment[] => {
   const out: Segment[] = [];
   let pos = 0;
   for (const f of doc.flags) {
+    if (f.start_idx < pos) continue; // overlapping span: still listed in Review, not highlighted twice
     if (f.start_idx > pos) out.push(doc.original_text.slice(pos, f.start_idx));
     out.push(f);
     pos = f.end_idx;
