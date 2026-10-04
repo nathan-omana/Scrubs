@@ -62,6 +62,12 @@ export default function HowItWorks() {
             </dt>
             <dd>Kept by default. Drugs, doses, diagnoses, lab values.</dd>
           </dl>
+          <h2 className="side-h">Nothing is saved</h2>
+          <p className="muted">
+            Documents, flags, and the list of real values behind each pseudonym are only kept in memory, in your
+            browser and on the clinic&apos;s backend. Nothing is written to disk or a database, and it is all cleared
+            when the app restarts.
+          </p>
         </div>
       )}
     </div>
