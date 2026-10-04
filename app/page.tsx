@@ -27,6 +27,7 @@ export default function Home() {
   const [chatIds, setChatIds] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState<{ title: string; steps: string[] } | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   useEffect(() => {
     api.listDocuments().then(setDocs);
@@ -49,10 +50,15 @@ export default function Home() {
   };
 
   const scan = async (input: NewDocument) => {
-    const doc = await withLoading("Scanning document", SCAN_STEPS, api.createDocument(input));
-    upsert(doc);
-    setCurrentId(doc.id);
-    setStep("review");
+    setScanError(null);
+    try {
+      const doc = await withLoading("Scanning document", SCAN_STEPS, api.createDocument(input));
+      upsert(doc);
+      setCurrentId(doc.id);
+      setStep("review");
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : "Scanning failed.");
+    }
   };
 
   const setMasked = async (flag: Flag, masked: boolean) => {
@@ -106,7 +112,7 @@ export default function Home() {
           onReview={openReview}
         />
       ) : (
-        <UploadStep docs={docs} onScan={scan} onOpen={openReview} />
+        <UploadStep docs={docs} onScan={scan} onOpen={openReview} error={scanError} />
       )}
     </Shell>
   );
