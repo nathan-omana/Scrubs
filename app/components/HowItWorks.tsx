@@ -43,7 +43,7 @@ export default function HowItWorks() {
           </div>
           <ol className="steps-list">
             <li>Presidio flags names, numbers, and dates.</li>
-            <li>Our model flags indirect details Presidio misses, like &ldquo;the retired town pharmacist&rdquo;.</li>
+            <li>Our model and a list of BC places and roles flag indirect details Presidio misses, like &ldquo;the retired town pharmacist&rdquo;.</li>
             <li>Drug names, doses, and diagnoses are kept by default.</li>
             <li>You review every flagged item. Gemini only receives the pseudonymized text.</li>
           </ol>

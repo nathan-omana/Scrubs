@@ -1,7 +1,9 @@
+import { USE_MOCK } from "../../lib/api";
 import HowItWorks from "./HowItWorks";
 import Icon, { type IconName } from "./Icon";
 
 export type Step = "upload" | "review" | "chat";
+export type Notice = { text: string; retry?: () => void };
 
 const STEPS: { key: Step; label: string; icon: IconName }[] = [
   { key: "upload", label: "Upload", icon: "upload" },
@@ -15,10 +17,11 @@ type Props = {
   onSelect: (s: Step) => void;
   title: string;
   subtitle: string;
+  alert?: Notice | null;
   children: React.ReactNode;
 };
 
-export default function Shell({ step, enabled, onSelect, title, subtitle, children }: Props) {
+export default function Shell({ step, enabled, onSelect, title, subtitle, alert, children }: Props) {
   const current = STEPS.findIndex((s) => s.key === step);
 
   return (
@@ -57,7 +60,11 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, childr
 
         <div className="sidebar__foot">
           <strong>Synthetic data only</strong>
-          <p>Gemini only receives pseudonymized text. Real values stay in the vault.</p>
+          <p>
+            Gemini only receives pseudonymized text. Real values stay in your browser and the clinic&apos;s backend
+            memory, and are cleared on restart.
+          </p>
+          {USE_MOCK && <p>Demo mode: sample data, no backend.</p>}
         </div>
       </aside>
 
@@ -77,7 +84,19 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, childr
             <HowItWorks />
           </div>
         </header>
-        <main className="content">{children}</main>
+        <main className="content">
+          {alert && (
+            <p className="form-error notice" role="alert">
+              {alert.text}{" "}
+              {alert.retry && (
+                <button type="button" className="link-btn" onClick={alert.retry}>
+                  Try again
+                </button>
+              )}
+            </p>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );
