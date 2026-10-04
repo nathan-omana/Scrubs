@@ -13,7 +13,7 @@ const db = () => (store ??= seedDocs().map(finalized));
 const auditLog: unknown[] = [];
 const outboundLog: unknown[] = [];
 
-const CLINICIAN = "Dr. A. Singh";
+const CLINICIAN = "clinician";
 
 const copy = <T,>(v: T): T => structuredClone(v);
 const find = (id: string) => {
