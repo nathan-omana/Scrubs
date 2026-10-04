@@ -20,6 +20,7 @@ Run:  cd backend && python app.py      (http://127.0.0.1:5000)
 """
 import io
 import logging
+import random
 import re
 import uuid
 from datetime import datetime, timezone
@@ -30,6 +31,7 @@ import config
 import gemini_client
 import pipeline
 from pipeline import lexicon, rules, tagging
+from pipeline.dates import find_dates, parse, same_day, shift_date
 from pipeline.extract import PdfError, ScannedPdfError, extract_text
 
 try:
@@ -58,6 +60,11 @@ log = logging.getLogger("scrubin")
 # ---------- In-memory store (cleared on restart) ----------
 DOCS: dict[str, dict] = {}                 # id -> doc, flags keep internal fields (type, found_by)
 PSEUDONYMS = tagging.Pseudonyms()          # same real value -> same pseudonym across all documents
+# Masked dates move back by this many days (CLAUDE.md section 8), so intervals stay correct.
+# One offset per process, not per document: the same real date always becomes the same shifted
+# date, across documents too, so merged mappings in the browser never disagree. For the
+# single-patient demo this is "one offset per patient". Memory only: never logged or sent.
+DATE_OFFSET_DAYS = -random.SystemRandom().randint(20, 90)
 
 DOC_FIELDS = ("id", "title", "source", "original_text", "pseudonymized_text", "status", "created_at", "flags")
 FLAG_FIELDS = ("flag_code", "start_idx", "end_idx", "text", "label", "tier", "reason", "masked", "locked",
@@ -87,6 +94,21 @@ def call_audit(name: str, **kwargs) -> None:
             fn(**kwargs)
         except Exception as e:
             log.info("audit: %s failed (%s)", name, type(e).__name__)
+
+
+def date_pseudonym(value: str, text: str) -> str | None:
+    """
+    The shifted date for a DATE flag, or None to use a [DATE_NN] pseudonym instead: when the date
+    can't be read, or when the note also mentions the shifted day as a real date (in any format).
+    That clash would make the leak check see a real date in the outbound text and mix up
+    re-identification.
+    """
+    shifted = shift_date(value, DATE_OFFSET_DAYS)
+    if not shifted or re.search(r"(?<!\w)" + re.escape(shifted) + r"(?!\w)", text, re.IGNORECASE):
+        return None
+    if any(same_day(parse(text[s:e]), parse(shifted)) for s, e in find_dates(text)):
+        return None
+    return shifted
 
 
 def word_count(text: str) -> int:
@@ -146,7 +168,8 @@ def create_document():
 
     flags = pipeline.analyze(text)
     for f in flags:
-        f["pseudonym"] = PSEUDONYMS.get(config.TYPES[f["type"]][2], f["text"])
+        f["pseudonym"] = date_pseudonym(f["text"], text) if f["type"] == "DATE" else None
+        f["pseudonym"] = f["pseudonym"] or PSEUDONYMS.get(config.TYPES[f["type"]][2], f["text"])
 
     doc = {
         "id": f"doc-{uuid.uuid4().hex[:12]}",
@@ -218,18 +241,16 @@ def mapping(doc_id):
 
 def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
     """
-    (count, reason): how many masked original values (whole word, any case) are still in the
-    outbound text, plus 1 for a raw PHN or email anywhere. The reason names KINDS only
-    ("Person, PHN"), never the values, because it is shown on screen and may be logged.
-    It checks exactly the values pseudonymize() replaces everywhere (config.MIN_REPEAT_CHARS),
-    so its own hiding step can never trip it.
+    (count, reason): how many masked values are still in the outbound text, in full or in part
+    ("Mr. Okafor", "6045550187"), plus 1 for a raw PHN or email anywhere. The reason names KINDS
+    only ("Person, PHN"), never the values, because it is shown on screen and may be logged.
+    It looks for exactly what pseudonymize() and tag_question() replace (tagging.variant_spans),
+    so their own hiding step can never trip it.
     """
     leaked: dict[str, str] = {}                                   # value -> label
     for f in flags:
-        v = f["text"].strip().lower()
-        if (f["masked"] and len(v) >= config.MIN_REPEAT_CHARS
-                and re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE)):
-            leaked.setdefault(v, f["label"])
+        if f["masked"] and tagging.variant_spans(outbound, f):
+            leaked.setdefault(f["text"].strip().lower(), f["label"])
     reasons = []
     if leaked:
         kinds = ", ".join(sorted(set(leaked.values())))
@@ -238,7 +259,8 @@ def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
     if raw:
         reasons.append("a PHN in the message that isn't in any reviewed document" if "PHN" in raw
                        else "an email address in the message that isn't in any reviewed document")
-    return len(leaked) + (1 if raw else 0), "; ".join(reasons).capitalize() if reasons else ""
+    text = "; ".join(reasons)
+    return len(leaked) + (1 if raw else 0), text[:1].upper() + text[1:]     # not .capitalize(): keeps "PHN"
 
 
 @app.post("/chat")
@@ -259,7 +281,7 @@ def chat():
 
     # Tag anything identifying the clinician typed, using every selected document's mapping.
     flags = [f for d in docs for f in d["flags"]]
-    safe_message = tagging.tag_question(message, tagging.mapping_of(flags))
+    safe_message = tagging.tag_question(message, flags)
     note = "\n\n".join(f"Document {i + 1}:\n{d['pseudonymized_text']}" for i, d in enumerate(docs))
     outbound_text = f"{note}\n\nRequest: {safe_message}"
 
