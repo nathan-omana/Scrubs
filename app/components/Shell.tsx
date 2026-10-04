@@ -55,13 +55,11 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, alert,
           </ol>
         </nav>
 
-        <div className="sidebar__foot">
-          <p>
-            Gemini only receives pseudonymized text. Real values stay in your browser and the clinic&apos;s backend
-            memory, and are cleared on restart.
-          </p>
-          {USE_MOCK && <p>Demo mode: sample data, no backend.</p>}
-        </div>
+        {USE_MOCK && (
+          <div className="sidebar__foot">
+            <p>Demo mode: sample data, no backend.</p>
+          </div>
+        )}
       </aside>
 
       <div className="main">
