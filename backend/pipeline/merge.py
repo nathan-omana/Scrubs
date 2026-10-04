@@ -29,14 +29,29 @@ def _overlaps(a: dict, b: dict) -> bool:
     return a["start"] < b["end"] and b["start"] < a["end"]
 
 
-def _priority(span: dict) -> int:
+_TIER_RANK = {"high": 2, "med": 1, "low": 0}
+
+
+def _tier_rank(span: dict) -> int:
+    # Unknown types count as MED, the same way risk.py treats them.
+    return _TIER_RANK[config.TYPES.get(span["type"], ("", "med", ""))[1]]
+
+
+def _priority(span: dict) -> tuple[int, int]:
+    """
+    (tier, source). The MOST PROTECTIVE type wins first: if any detector says an overlapping
+    span is HIGH (a name, an MRN), it stays HIGH even if another calls it a drug or a relative.
+    Otherwise a clinical label from GLiNER could unmask an identifier ("MRN 4482913" -> Drug).
+    """
     if span["source"] == "rules" and span["type"] in config.STRUCTURED_TYPES:
-        return 3   # pattern/checksum match
-    if span["source"] == "gliner":
-        return 2   # specialist model, understands context
-    if span["source"] == "lexicon":
-        return 1   # exact match against our BC list, but blind to context
-    return 0       # Presidio's general-purpose PERSON guess
+        source = 3   # pattern/checksum match
+    elif span["source"] == "gliner":
+        source = 2   # specialist model, understands context
+    elif span["source"] == "lexicon":
+        source = 1   # exact match against our BC list, but blind to context
+    else:
+        source = 0   # Presidio's general-purpose PERSON guess
+    return _tier_rank(span), source
 
 
 def merge(text: str, rule_spans: list[dict], model_spans: list[dict],
@@ -58,10 +73,21 @@ def merge(text: str, rule_spans: list[dict], model_spans: list[dict],
     # version so the clinician sees two precise flags instead of one blurry one.
     # If GLiNER missed any word, we keep Presidio's span: a miss is a leak.
     # Same idea for the lexicon: spaCy's "bush" is dropped when the lexicon matched "bush pilot".
+    # EXCEPT when the only thing covering the name is a family/description span with no name in
+    # it: GLiNER called the patient "Mrs. Eleanor Park" a family member, and dropping spaCy's
+    # PERSON there turned a locked HIGH name into an unlockable MED flag.
     precise = [s for s in spans if s["source"] in ("gliner", "lexicon")]
+
+    def _replaced_by_precise(s: dict) -> bool:
+        if not _fully_covered(text, s, precise):
+            return False
+        covering = [o for o in precise if _overlaps(o, s)]
+        has_name = any(o["type"] in ("PERSON", "PROVIDER") for o in covering)
+        only_about_a_person = all(o["type"] in ("RELATION", "DESC") for o in covering)
+        return has_name or not only_about_a_person
+
     spans = [s for s in spans
-             if not (s["source"] == "rules" and s["type"] == "PERSON"
-                     and _fully_covered(text, s, precise))]
+             if not (s["source"] == "rules" and s["type"] == "PERSON" and _replaced_by_precise(s))]
 
     # Sort by start position; if two start together, the longer one comes first.
     spans.sort(key=lambda s: (s["start"], -(s["end"] - s["start"])))
@@ -72,7 +98,9 @@ def merge(text: str, rule_spans: list[dict], model_spans: list[dict],
             m = merged[-1]
             m["end"] = max(m["end"], s["end"])                 # grow to cover both
             # Who decides the TYPE of the combined span?
-            #   1. A structured rule (PHN checksum, phone pattern...) beats any guess.
+            #   0. The higher tier (HIGH > MED > LOW) always wins: never unmask by merging.
+            #   Within a tier:
+            #   1. A structured rule (PHN checksum, MRN, phone pattern...) beats any guess.
             #   2. Then GLiNER (context-aware specialist).
             #   3. Then the lexicon (exact BC list match).
             #   4. Then Presidio's spaCy PERSON guess. Ties: higher score wins.

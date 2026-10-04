@@ -86,7 +86,11 @@ export default function ChatStep({
   const activeFlags = active.flatMap((d) => d.flags);
   const canSend = active.length > 0 && !thinking;
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [messages, thinking]);
+  useEffect(() => {
+    // Braces matter: newer browsers return a Promise from smooth scrollIntoView, and an effect
+    // must return nothing or a cleanup function ("destroy is not a function" otherwise).
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [messages, thinking]);
 
   const toggleDoc = (id: string) =>
     setSelectedIds(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);

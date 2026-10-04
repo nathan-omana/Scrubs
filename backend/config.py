@@ -8,7 +8,7 @@ load_dotenv()  # reads ../.env or ./.env if present (API keys etc.)
 
 # ---------- Gemini (the only thing that talks to the internet) ----------
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")  # check Google's docs for the current model name
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")  # check Google's docs for the current model name
 
 # ---------- Presidio (layer 1: rules) ----------
 # spaCy model Presidio uses for its built-in PERSON detection.
@@ -68,7 +68,7 @@ GLINER_CHUNK_CHARS = 1200
 # ---------- Merge ----------
 # Types found by a pattern/checksum (not a guess). When findings overlap, these types win.
 # Presidio's PERSON is NOT here: it's a spaCy model guess, so GLiNER (the specialist) wins on names.
-STRUCTURED_TYPES = {"PHN", "PHONE", "EMAIL", "POSTAL", "DATE", "FACILITY"}
+STRUCTURED_TYPES = {"PHN", "MRN", "LICENSE", "PHONE", "EMAIL", "POSTAL", "DATE", "FACILITY"}
 
 # Words that look like names but are medical terms. Never redact these.
 NEVER_REDACT = {
@@ -120,9 +120,17 @@ CLINICIAN = os.getenv("CLINICIAN", "Dr. A. Singh")
 PORT = int(os.getenv("PORT", "5000"))
 
 # Browser origins allowed to call the API (CORS). Comma-separated in .env.
-FRONTEND_ORIGINS = {o.strip() for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+# A trailing "/" is ignored: browsers send "http://localhost:3000", never "http://localhost:3000/".
+FRONTEND_ORIGINS = {o.strip().rstrip("/") for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
                     .split(",") if o.strip()}
 
 MAX_UPLOAD_MB = 15         # matches pipeline/pdf.py MAX_BYTES; Flask refuses bigger uploads with 413
 # spaCy refuses text over 1,000,000 characters; real notes are far shorter. Fail clearly instead.
 MAX_TEXT_CHARS = 200_000
+
+# ---------- Pseudonymizing and the leak check ----------
+# Masked values at least this long are also replaced wherever else they appear (any case, whole
+# word), and the leak check looks for exactly those. Shorter values ("2", "Al") are only replaced
+# where they were flagged: replacing every "2" would wreck the text, and checking for them would
+# block every message. Both places read this one setting so they can never disagree.
+MIN_REPEAT_CHARS = 3
