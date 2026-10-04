@@ -17,6 +17,8 @@ Documents, flags and the placeholder mapping are kept in memory only and are gon
 
 ## Install the desktop app (Windows)
 
+![Installing Scrubs with the setup wizard](docs/releasetutorial.gif)
+
 1. Download `Scrubs-0.1.0.msi` from the [Releases page](../../releases). It's about 930 MB.
 2. Run it. The installer isn't code-signed, so Windows will show "Windows protected your PC". Click **More info**, then **Run anyway**.
 3. Pick an install folder or keep the default (`C:\Program Files\Scrubs`).
