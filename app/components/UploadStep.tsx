@@ -1,33 +1,26 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DEMO_NOTE, DEMO_TITLE } from "../../lib/mockData";
-import type { Doc, NewDocument } from "../../lib/types";
+import type { NewDocument } from "../../lib/types";
 import Icon from "./Icon";
-import TierTag, { tierCounts } from "./TierTag";
 
 type Props = {
-  docs: Doc[];
   onScan: (input: NewDocument) => void;
-  onOpen: (doc: Doc) => void;
   error?: string | null;
 };
 
-const formatAdded = (iso: string) => {
-  const d = new Date(iso);
-  const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(iso).setHours(0, 0, 0, 0)) / 86_400_000);
-  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  if (days === 0) return `Today, ${time}`;
-  if (days === 1) return `Yesterday, ${time}`;
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
-};
-
-export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
+export default function UploadStep({ onScan, error }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  // Set after mount so the server-rendered page and the browser agree on the date.
+  const [defaultTitle, setDefaultTitle] = useState("Visit note");
+  useEffect(() => {
+    setDefaultTitle(`Visit note, ${new Date().toLocaleDateString("en-CA", { month: "short", day: "numeric" })}`);
+  }, []);
 
   const pick = (f: File | undefined) => {
     if (f && (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"))) setFile(f);
@@ -35,7 +28,7 @@ export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
   const canScan = file !== null || text.trim().length > 0;
   const scan = () => {
     if (file) onScan({ kind: "pdf", file });
-    else if (text.trim()) onScan({ kind: "paste", title, text });
+    else if (text.trim()) onScan({ kind: "paste", title: title.trim() || defaultTitle, text });
   };
 
   return (
@@ -104,7 +97,7 @@ export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
             <input
               className="input"
               value={title}
-              placeholder="Visit note, Sept 28"
+              placeholder={defaultTitle}
               onChange={(e) => setTitle(e.target.value)}
             />
           </label>
@@ -147,53 +140,6 @@ export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
             </button>
           </div>
         </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel__head">
-          <div>
-            <h2>Scanned documents</h2>
-            <p>Open one to review it, or to use it in chat once it is ready.</p>
-          </div>
-        </div>
-        {docs.length === 0 ? (
-          <p className="empty">No documents yet.</p>
-        ) : (
-          <ul className="doc-list">
-            {docs.map((doc) => (
-              <li key={doc.id}>
-                <div className="doc-row">
-                  <span className="doc-row__icon">
-                    <Icon name={doc.source === "pdf" ? "file" : "paste"} />
-                  </span>
-                  <div className="doc-row__main">
-                    <div className="doc-row__title">{doc.title}</div>
-                    <div className="doc-row__meta">
-                      {doc.source === "pdf" ? "PDF upload" : "Pasted text"} · {formatAdded(doc.created_at)}
-                    </div>
-                  </div>
-                  <div className="doc-row__right">
-                    <span className="tier-counts">
-                      {tierCounts(doc.flags).map(({ tier, count }) => (
-                        <TierTag key={tier} tier={tier} count={count} />
-                      ))}
-                    </span>
-                    {doc.status === "ready" ? (
-                      <span className="badge badge--ready">
-                        <Icon name="check" size={12} /> Ready
-                      </span>
-                    ) : (
-                      <span className="badge">Needs review</span>
-                    )}
-                    <button type="button" className="btn btn--sm" onClick={() => onOpen(doc)}>
-                      Review
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
     </div>
   );
