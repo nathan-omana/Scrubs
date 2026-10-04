@@ -1,14 +1,13 @@
 import { USE_MOCK } from "../../lib/api";
 import HowItWorks from "./HowItWorks";
-import Icon, { type IconName } from "./Icon";
 
 export type Step = "upload" | "review" | "chat";
 export type Notice = { text: string; retry?: () => void };
 
-const STEPS: { key: Step; label: string; icon: IconName }[] = [
-  { key: "upload", label: "Upload", icon: "upload" },
-  { key: "review", label: "Review", icon: "review" },
-  { key: "chat", label: "Chat", icon: "chat" },
+const STEPS: { key: Step; label: string }[] = [
+  { key: "upload", label: "Upload document" },
+  { key: "review", label: "Review redactions" },
+  { key: "chat", label: "Ask the chatbot" },
 ];
 
 type Props = {
@@ -16,7 +15,7 @@ type Props = {
   enabled: Record<Step, boolean>;
   onSelect: (s: Step) => void;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   alert?: Notice | null;
   children: React.ReactNode;
 };
@@ -26,72 +25,63 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, alert,
 
   return (
     <div className="app">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand__mark">
-            <Icon name="shield" size={18} />
-          </span>
-          <div className="brand__name">Scrubs</div>
+      <header className="masthead">
+        <div className="container masthead__inner">
+          <div className="wordmark">
+            <span className="wordmark__mark" aria-hidden>
+              S
+            </span>
+            Scrubs
+          </div>
+          <div className="masthead__right">
+            <HowItWorks />
+            <span className="masthead__user">Dr. A. Singh · Hope Family Clinic</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="container content">
+        <ol className="steps" aria-label="Progress">
+          {STEPS.map((s, i) => {
+            const state = i < current ? "done" : i === current ? "current" : "todo";
+            return (
+              <li key={s.key} className={`steps__item steps__item--${state}`} aria-current={i === current ? "step" : undefined}>
+                <span className="steps__num">{i + 1}</span>
+                {enabled[s.key] && i !== current ? (
+                  <button type="button" className="steps__link" onClick={() => onSelect(s.key)}>
+                    {s.label}
+                  </button>
+                ) : (
+                  <span className="steps__label">{s.label}</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+
+        <div className="page-head">
+          <h1>{title}</h1>
+          {subtitle && <p>{subtitle}</p>}
         </div>
 
-        <nav aria-label="Steps">
-          <div className="nav__label">Steps</div>
-          <ol className="nav__list">
-            {STEPS.map((s, i) => (
-              <li key={s.key}>
-                <button
-                  type="button"
-                  className="nav__item"
-                  aria-current={i === current ? "step" : undefined}
-                  disabled={!enabled[s.key]}
-                  onClick={() => onSelect(s.key)}
-                >
-                  <Icon name={i < current ? "done" : s.icon} />
-                  {s.label}
-                  <span className="nav__num">{i + 1} of 3</span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-
-        {USE_MOCK && (
-          <div className="sidebar__foot">
-            <p>Demo mode: sample data, no backend.</p>
-          </div>
+        {alert && (
+          <p className="form-error notice" role="alert">
+            {alert.text}{" "}
+            {alert.retry && (
+              <button type="button" className="link-btn" onClick={alert.retry}>
+                Try again
+              </button>
+            )}
+          </p>
         )}
-      </aside>
+        {children}
+      </main>
 
-      <div className="main">
-        <header className="topbar">
-          <div>
-            <div className="topbar__title">
-              <h1>{title}</h1>
-              <span className="step-badge">
-                Step {current + 1} of 3
-              </span>
-            </div>
-            <p className="topbar__sub">{subtitle}</p>
-          </div>
-          <div className="topbar__right">
-            <span className="topbar__user">Dr. A. Singh · Hope Family Clinic</span>
-            <HowItWorks />
-          </div>
-        </header>
-        <main className="content">
-          {alert && (
-            <p className="form-error notice" role="alert">
-              {alert.text}{" "}
-              {alert.retry && (
-                <button type="button" className="link-btn" onClick={alert.retry}>
-                  Try again
-                </button>
-              )}
-            </p>
-          )}
-          {children}
-        </main>
-      </div>
+      {USE_MOCK && (
+        <footer className="footer">
+          <div className="container">Demo mode: sample data, no backend.</div>
+        </footer>
+      )}
     </div>
   );
 }

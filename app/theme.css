@@ -1,6 +1,7 @@
 /* Theme tokens. The design system is still TBD (CLAUDE.md 11.1), so every colour,
    font, and size the UI uses lives here and can be swapped in one place.
-   Current values follow the teal clinical mockup. */
+   Current values follow the PubMed / ClinicalTrials.gov style mockup: navy header, blue actions,
+   plain borders, square corners. */
 
 :root {
   /* Type */
@@ -14,23 +15,31 @@
   --text-xl: 1.4rem;
 
   /* Surfaces */
-  --bg: #edf2f1;
+  --bg: #f0f2f4;
   --surface: #ffffff;
-  --surface-muted: #f5f8f7;
-  --border: #d4dfdd;
-  --border-strong: #a9bcb9;
+  --surface-muted: #f6f7f9;
+  --border: #d6dbe1;
+  --border-strong: #a9aeb1;
 
   /* Text */
-  --text: #172a2d;
-  --text-muted: #5a6d70;
+  --text: #1b1b1b;
+  --text-muted: #565c65;
 
   /* Accent: navigation, primary actions, selection */
-  --accent: #1f4f55;
-  --accent-hover: #163c41;
+  --accent: #205493;
+  --accent-hover: #163e6e;
   --accent-contrast: #ffffff;
-  --accent-soft: #dfecea;
-  --accent-text: #1f5f66;
-  --focus: #2b8a94;
+  --accent-soft: #e4ecf7;
+  --accent-text: #1a4480;
+  --focus: #2378c3;
+  --link: #0071bc;
+  --heading: #0b2f4e;
+
+  /* Header bar */
+  --masthead: #0b2f4e;
+  --masthead-text: #ffffff;
+  --masthead-muted: #b8c7d6;
+  --masthead-rule: #00788a;
 
   /* Tiers. Only used to mean tier. Always paired with a HIGH / MED / LOW text tag. */
   --tier-high: #b42318;
@@ -41,13 +50,12 @@
   --tier-low-bg: #e0f1e5;
 
   /* Shape and spacing */
-  --radius: 6px;
-  --radius-sm: 4px;
+  --radius: 2px;
+  --radius-sm: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --sidebar-width: 232px;
 }
