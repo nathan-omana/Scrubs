@@ -340,6 +340,14 @@ def test_shifted_day_written_another_way_in_the_note_falls_back_to_a_tag():
         app_module.DATE_OFFSET_DAYS = old
 
 
+def test_pain_scores_stay_and_bare_dates_still_shift():
+    c = client()
+    doc = ready_doc(c, text="Pt Margaret Ellison seen on 9/10 for follow-up. Pain 7/10 at rest, power 4/5.")
+    out = doc["pseudonymized_text"]
+    assert "Pain 7/10 at rest, power 4/5." in out, out
+    assert "9/10" not in out and flag(doc, "9/10")["pseudonym"] == shift_date("9/10", app_module.DATE_OFFSET_DAYS)
+
+
 def test_chat_sends_shifted_dates_only():
     c = client()
     sent_to_gemini.clear()
