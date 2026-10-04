@@ -88,8 +88,20 @@ def test_durations_are_not_dates():
         assert not rules._is_real_date(t), t
 
 
+def test_lone_numbers_and_times_are_not_dates():
+    # Presidio tags question numbers and counts as dates ("2. Question", "28 patients").
+    for t in ["2", "3", "28", "2026", "10:30", "4.2", "2-3", "1990s", "summary", "primary care"]:
+        assert not rules._is_real_date(t), t
+
+
+def test_find_ignores_numbered_questions():
+    text = "2. Question: what is the mean? 3. Question: s = 4.2. Answer 4."
+    assert "DATE" not in found(text).values(), found(text)
+
+
 def test_real_dates_are_dates():
-    for t in ["2026-09-02", "03/14/1951", "Sept 28", "September 28, 2026", "Mar 3"]:
+    for t in ["2026-09-02", "03/14/1951", "3/14", "03-14-1951", "Sept 28", "September 28, 2026",
+              "Mar 3", "Mar. 3", "28 Sept", "Oct 3", "Aug 19"]:
         assert rules._is_real_date(t), t
 
 

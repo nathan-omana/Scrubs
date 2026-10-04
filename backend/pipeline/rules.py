@@ -131,17 +131,21 @@ _DURATION = re.compile(
 _RELATIVE_DAY = re.compile(r"^(post-?op\s+)?(day|pod)\s*\d+$", re.IGNORECASE)
 
 
+# A month as a whole word ("Sept", "September", "Mar."), not inside "summary" or "primary".
+_MONTH = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(?![a-z])", re.IGNORECASE)
+# Numeric dates: 2026-09-02, 03/14/1951, 3/14, 03-14-1951. Not "4.2", "2-3", "10:30" or a lone number.
+_NUMERIC_DATE = re.compile(r"\b(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}/\d{1,2}(/\d{2,4})?|\d{1,2}-\d{1,2}-\d{2,4})\b")
+
+
 def _is_real_date(text: str) -> bool:
     t = text.strip()
     if _DURATION.match(t) or _RELATIVE_DAY.match(t):
         return False
-    if not re.search(r"\d", t) and not re.search(
-        r"jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec", t, re.IGNORECASE
-    ):
-        return False                                    # "daily", "today", "yesterday" -> not a date
     if "year-old" in t.lower() or "yo" == t.lower():
         return False                                    # that's an age; GLiNER labels ages
-    return True
+    # A date needs a month name or a numeric date shape. A lone number ("2", "28", "2026") is
+    # not a date: Presidio flags question numbers and counts that way, and masking them breaks text.
+    return bool(_MONTH.search(t) or _NUMERIC_DATE.search(t))
 
 
 def find(text: str) -> list[dict]:
