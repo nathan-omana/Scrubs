@@ -60,6 +60,23 @@ def test_scanned_and_bad_files():
     assert raises(PdfError, extract_text, b"%PDF-1.4\ngarbage that is not a pdf")
 
 
+def test_page_and_size_limits():
+    from pipeline import pdf
+    assert raises(PdfError, extract_text, build_pdf([["Page text here."]] * (pdf.MAX_PAGES + 1)))
+    assert not raises(PdfError, extract_text, build_pdf([["Page text here."]] * pdf.MAX_PAGES))
+    assert raises(PdfError, extract_text, b"%PDF-1.4\n" + b"0" * pdf.MAX_BYTES)
+
+
+def test_error_messages_never_echo_document_text():
+    # Messages go straight to the user and may end up in logs, so they must be generic.
+    secret = "Margaret Ellison 9123947241"
+    for data in [build_pdf([[secret]] * 31), b"%PDF-1.4\n" + secret.encode()]:
+        try:
+            extract_text(data)
+        except PdfError as e:
+            assert "Margaret" not in str(e) and "9123" not in str(e), str(e)
+
+
 def test_clean_text_keeps_list_items_and_labels_on_their_own_lines():
     page = (
         "Discharge medications: apixaban and amoxicillin given as listed in the table below for\n"
