@@ -88,7 +88,7 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
             Back
           </button>
           <button type="button" className="btn btn--primary" onClick={onDone}>
-            Done, open chat
+            Continue
           </button>
         </div>
       </div>

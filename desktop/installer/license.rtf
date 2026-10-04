@@ -1,0 +1,12 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0\fswiss Segoe UI;}}\f0\fs18
+{\b\fs22 Scrubs}\par
+\par
+Scrubs is a StormHacks 2026 prototype. It finds identifiers in patient documents, lets you review them, and replaces the ones you mask with pseudonyms before any text is sent to a chatbot.\par
+\par
+{\b How your data is handled}\par
+Detection runs on this computer. Documents, flags, and the mapping between real values and pseudonyms are kept in memory only. Nothing is written to disk or a database, and everything is cleared when Scrubs closes.\par
+The only data that leaves this computer is the pseudonymized text you choose to send to the chatbot (Google Gemini), using your own API key. The key is stored in Windows Credential Manager.\par
+\par
+{\b Prototype notice}\par
+This software is provided as is, without warranty of any kind. It is a prototype and has not been validated for clinical use. Always review the flagged items before sending anything.\par
+}
