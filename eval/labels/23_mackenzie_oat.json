@@ -1,0 +1,65 @@
+[
+ {
+  "start": 34,
+  "end": 39,
+  "label": "Date",
+  "tier": "med",
+  "text": "Oct 3"
+ },
+ {
+  "start": 41,
+  "end": 52,
+  "label": "Person",
+  "tier": "high",
+  "text": "Tyler Morin"
+ },
+ {
+  "start": 58,
+  "end": 77,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Opioid use disorder"
+ },
+ {
+  "start": 89,
+  "end": 97,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Suboxone"
+ },
+ {
+  "start": 98,
+  "end": 111,
+  "label": "Dose",
+  "tier": "low",
+  "text": "16/4 mg daily"
+ },
+ {
+  "start": 126,
+  "end": 177,
+  "label": "Location description",
+  "tier": "med",
+  "text": "the pharmacy beside the Mackenzie recreation centre"
+ },
+ {
+  "start": 179,
+  "end": 204,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "UDS positive for fentanyl"
+ },
+ {
+  "start": 241,
+  "end": 280,
+  "label": "Employer",
+  "tier": "med",
+  "text": "night shifts at the Mackenzie pulp mill"
+ },
+ {
+  "start": 323,
+  "end": 331,
+  "label": "Drug",
+  "tier": "low",
+  "text": "naloxone"
+ }
+]

@@ -1,0 +1,135 @@
+[
+ {
+  "start": 0,
+  "end": 18,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Hope Family Clinic"
+ },
+ {
+  "start": 19,
+  "end": 41,
+  "label": "Address",
+  "tier": "high",
+  "text": "418 Ridgeview Crescent"
+ },
+ {
+  "start": 43,
+  "end": 47,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Hope"
+ },
+ {
+  "start": 52,
+  "end": 59,
+  "label": "Address",
+  "tier": "high",
+  "text": "V0X 1L0"
+ },
+ {
+  "start": 64,
+  "end": 76,
+  "label": "Phone",
+  "tier": "high",
+  "text": "604-555-0193"
+ },
+ {
+  "start": 78,
+  "end": 93,
+  "label": "Date",
+  "tier": "med",
+  "text": "October 1, 2026"
+ },
+ {
+  "start": 100,
+  "end": 118,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Lucia Ferreira"
+ },
+ {
+  "start": 125,
+  "end": 142,
+  "label": "Person",
+  "tier": "high",
+  "text": "Thomas Whitehorse"
+ },
+ {
+  "start": 148,
+  "end": 160,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9091 141 707"
+ },
+ {
+  "start": 204,
+  "end": 214,
+  "label": "Person",
+  "tier": "high",
+  "text": "Whitehorse"
+ },
+ {
+  "start": 230,
+  "end": 250,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "volunteer fire chief"
+ },
+ {
+  "start": 254,
+  "end": 258,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Yale"
+ },
+ {
+  "start": 318,
+  "end": 339,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "ejection fraction 35%"
+ },
+ {
+  "start": 359,
+  "end": 379,
+  "label": "Drug",
+  "tier": "low",
+  "text": "sacubitril-valsartan"
+ },
+ {
+  "start": 380,
+  "end": 392,
+  "label": "Dose",
+  "tier": "low",
+  "text": "24/26 mg BID"
+ },
+ {
+  "start": 397,
+  "end": 407,
+  "label": "Drug",
+  "tier": "low",
+  "text": "bisoprolol"
+ },
+ {
+  "start": 408,
+  "end": 420,
+  "label": "Dose",
+  "tier": "low",
+  "text": "2.5 mg daily"
+ },
+ {
+  "start": 450,
+  "end": 474,
+  "label": "Email",
+  "tier": "high",
+  "text": "t.whitehorse@example.com"
+ },
+ {
+  "start": 488,
+  "end": 503,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Amrit Singh"
+ }
+]

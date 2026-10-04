@@ -1,0 +1,72 @@
+[
+ {
+  "start": 0,
+  "end": 17,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mrs. Eleanor Park"
+ },
+ {
+  "start": 27,
+  "end": 34,
+  "label": "MRN",
+  "tier": "high",
+  "text": "4482913"
+ },
+ {
+  "start": 52,
+  "end": 59,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 28"
+ },
+ {
+  "start": 86,
+  "end": 136,
+  "label": "Location description",
+  "tier": "med",
+  "text": "the small red house beside the Hope community hall"
+ },
+ {
+  "start": 145,
+  "end": 172,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the retired town pharmacist"
+ },
+ {
+  "start": 192,
+  "end": 225,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "a nurse at Fraser Canyon Hospital"
+ },
+ {
+  "start": 252,
+  "end": 271,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "atrial fibrillation"
+ },
+ {
+  "start": 299,
+  "end": 307,
+  "label": "Drug",
+  "tier": "low",
+  "text": "apixaban"
+ },
+ {
+  "start": 308,
+  "end": 316,
+  "label": "Dose",
+  "tier": "low",
+  "text": "5 mg BID"
+ },
+ {
+  "start": 333,
+  "end": 348,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Amrit Singh"
+ }
+]

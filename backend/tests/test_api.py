@@ -297,6 +297,24 @@ def test_blocked_chat_says_why_without_values():
     assert "email" in r.json["blocked_reason"] and "jo.doe" not in r.json["blocked_reason"]
 
 
+def test_leak_check_never_trips_on_its_own_hiding_step():
+    # Short masked values (like a "2" wrongly flagged as a date) are only replaced where flagged,
+    # so the leak check must not look for them elsewhere. This blocked every message on a quiz PDF.
+    text = "2. Question one. 3. Question two, answer 2. Pt Margaret Ellison in Tofino."
+
+    def flag(value, label, pseudonym):
+        start = text.index(value)
+        return {"start_idx": start, "end_idx": start + len(value), "text": value, "masked": True,
+                "label": label, "pseudonym": pseudonym}
+
+    flags = [flag("2", "Date", "[DATE_01]"), flag("3", "Date", "[DATE_02]"),
+             flag("Margaret Ellison", "Person", "[PATIENT_01]")]
+    from pipeline import tagging
+    out = tagging.pseudonymize(text, flags)
+    assert app_module.leak_check(out, flags) == (0, "")
+    assert app_module.leak_check(out + " Margaret Ellison", flags)[0] == 1   # a real leak still blocks
+
+
 def test_chat_requires_finalized_documents():
     c = client()
     doc = new_doc(c)

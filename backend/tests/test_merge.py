@@ -64,8 +64,29 @@ def test_type_priority_structured_beats_model_beats_lexicon_beats_spacy():
     lex = span(0, 10, "LOCATION", "lexicon", 1.0)
     spacy = span(0, 10, "PERSON", "rules", 1.0)
     assert merge.merge(text, [rule], [model], [lex])[0]["type"] == "PHN"
+    # spaCy's PERSON fully covered by a GLiNER span that isn't about a person: GLiNER's reading stands.
     assert merge.merge(text, [spacy], [model], [lex])[0]["type"] == "AGE"
-    assert merge.merge(text, [spacy], [], [lex])[0]["type"] == "LOCATION"
+    # Same tier: detector priority decides (GLiNER > lexicon).
+    assert merge.merge(text, [], [model], [lex])[0]["type"] == "AGE"
+    # A HIGH type beats a MED one regardless of source.
+    assert merge.merge(text, [], [span(0, 10, "PERSON", "gliner", 0.3)], [lex])[0]["type"] == "PERSON"
+
+
+def test_clinical_label_never_unmasks_an_identifier():
+    # Real case: GLiNER called "MRN 4482913" a Drug (LOW, kept), so the MRN went to Gemini.
+    text = "Pt seen, MRN 4482913, stable."
+    a, b = text.index("4482913"), text.index("MRN")
+    rule = span(a, a + 7, "MRN", "rules", 0.9)
+    model = span(b, a + 7, "DRUG", "gliner", 0.56)
+    out = merge.merge(text, [rule], [model])
+    assert len(out) == 1 and out[0]["type"] == "MRN" and out[0]["text"] == "MRN 4482913"
+
+
+def test_name_stays_high_when_gliner_calls_it_a_relative():
+    # Real case: GLiNER labelled the patient "Mrs. Eleanor Park" as a family member (MED, unlockable).
+    text = "Mrs. Eleanor Park, 72, was admitted."
+    out = merge.merge(text, [span(5, 17, "PERSON", "rules", 0.85)], [span(0, 17, "RELATION", "gliner", 0.87)])
+    assert len(out) == 1 and out[0]["type"] == "PERSON" and out[0]["text"] == "Mrs. Eleanor Park"
 
 
 def test_priority_holds_regardless_of_order_or_length():

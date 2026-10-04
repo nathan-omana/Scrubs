@@ -1,0 +1,8 @@
+HOME HEALTH VISIT   [[09/30/2026|Date]]
+Client: [[SANTOS, MIGUEL A.|Person]]
+Addr: [[Unit 4, 2290 Fraser Hwy|Address]], [[Abbotsford|Location description]] [[V2T 3K5|Address]]
+Ph: [[(604) 555-0158|Phone]]
+
+Dx: [[diabetic foot ulcer|Diagnosis]] L heel, [[MRSA|Diagnosis]] colonized.
+Tx: [[silver alginate|Drug]] dressing changed, [[doxycycline|Drug]] [[100 mg BID|Dose]], day 4 of 10. [[Wound swab grew MRSA|Lab value]].
+Client is [[the foreman who runs the seasonal crew at a Sumas Prairie berry farm|Unique role]] and keeps walking on the foot. Offloading boot ordered.

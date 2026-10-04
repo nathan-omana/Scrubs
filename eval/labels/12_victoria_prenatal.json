@@ -1,0 +1,79 @@
+[
+ {
+  "start": 27,
+  "end": 38,
+  "label": "Person",
+  "tier": "high",
+  "text": "Hannah Yoon"
+ },
+ {
+  "start": 50,
+  "end": 62,
+  "label": "Date",
+  "tier": "med",
+  "text": "Nov 24, 2026"
+ },
+ {
+  "start": 64,
+  "end": 84,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Gestational diabetes"
+ },
+ {
+  "start": 103,
+  "end": 129,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "fasting glucose 5.6 mmol/L"
+ },
+ {
+  "start": 131,
+  "end": 142,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Rh negative"
+ },
+ {
+  "start": 144,
+  "end": 148,
+  "label": "Drug",
+  "tier": "low",
+  "text": "RhIG"
+ },
+ {
+  "start": 149,
+  "end": 159,
+  "label": "Dose",
+  "tier": "low",
+  "text": "300 mcg IM"
+ },
+ {
+  "start": 219,
+  "end": 226,
+  "label": "Person",
+  "tier": "high",
+  "text": "Jae-won"
+ },
+ {
+  "start": 230,
+  "end": 269,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "deployed with the Navy out of Esquimalt"
+ },
+ {
+  "start": 304,
+  "end": 329,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Victoria General Hospital"
+ },
+ {
+  "start": 346,
+  "end": 371,
+  "label": "Email",
+  "tier": "high",
+  "text": "hannah.yoon88@example.com"
+ }
+]

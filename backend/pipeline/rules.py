@@ -15,7 +15,7 @@ import tldextract
 # that ships with the library instead.
 tldextract.tldextract.TLD_EXTRACTOR = tldextract.TLDExtract(suffix_list_urls=())
 
-from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer  # noqa: E402
+from presidio_analyzer import AnalyzerEngine, EntityRecognizer, Pattern, PatternRecognizer, RecognizerResult  # noqa: E402
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
 import config
@@ -51,6 +51,47 @@ class BCPHNRecognizer(PatternRecognizer):
         return is_valid_phn(pattern_text)
 
 
+# ---------- MRN (Medical Record Number) ----------
+class MRNRecognizer(EntityRecognizer):
+    """Flags the digit portion of MRN annotations, e.g. '9482-110' in 'MRN: 9482-110'."""
+    _RE = re.compile(r"\bMRN[\s:#-]*(\d[\d -]{2,9}\d)\b", re.IGNORECASE)
+
+    def __init__(self):
+        super().__init__(supported_entities=["MRN"], name="MRNRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [
+            RecognizerResult("MRN", m.start(1), m.end(1), 0.9)
+            for m in self._RE.finditer(text)
+        ]
+
+
+# ---------- Context-aware date recognizer ----------
+class ContextDateRecognizer(EntityRecognizer):
+    """
+    Flags dates that follow explicit date-context labels (DOB, Date of Service, Date of Birth).
+    Presidio's built-in DATE_TIME can miss these when confidence is borderline.
+    """
+    _RE = re.compile(
+        r"\b(?:DOB|Date\s+of\s+(?:Service|Birth))[\s:]+([A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}"
+        r"|\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})",
+        re.IGNORECASE,
+    )
+
+    def __init__(self):
+        super().__init__(supported_entities=["DATE_TIME"], name="ContextDateRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [
+            RecognizerResult("DATE_TIME", m.start(1), m.end(1), 0.95)
+            for m in self._RE.finditer(text)
+        ]
+
+
 # Presidio logs at INFO level (noisy, and debug logs could include text). Errors only.
 logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 
@@ -62,6 +103,8 @@ _nlp = NlpEngineProvider(nlp_configuration={
 
 analyzer = AnalyzerEngine(nlp_engine=_nlp, supported_languages=["en"])
 analyzer.registry.add_recognizer(BCPHNRecognizer())
+analyzer.registry.add_recognizer(MRNRecognizer())
+analyzer.registry.add_recognizer(ContextDateRecognizer())
 
 # Canadian postal code, e.g. "V0R 2Z0". (First letter can't be D, F, I, O, Q, U, W, Z.)
 analyzer.registry.add_recognizer(PatternRecognizer(
@@ -88,17 +131,21 @@ _DURATION = re.compile(
 _RELATIVE_DAY = re.compile(r"^(post-?op\s+)?(day|pod)\s*\d+$", re.IGNORECASE)
 
 
+# A month as a whole word ("Sept", "September", "Mar."), not inside "summary" or "primary".
+_MONTH = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(?![a-z])", re.IGNORECASE)
+# Numeric dates: 2026-09-02, 03/14/1951, 3/14, 03-14-1951. Not "4.2", "2-3", "10:30" or a lone number.
+_NUMERIC_DATE = re.compile(r"\b(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}/\d{1,2}(/\d{2,4})?|\d{1,2}-\d{1,2}-\d{2,4})\b")
+
+
 def _is_real_date(text: str) -> bool:
     t = text.strip()
     if _DURATION.match(t) or _RELATIVE_DAY.match(t):
         return False
-    if not re.search(r"\d", t) and not re.search(
-        r"jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec", t, re.IGNORECASE
-    ):
-        return False                                    # "daily", "today", "yesterday" -> not a date
     if "year-old" in t.lower() or "yo" == t.lower():
         return False                                    # that's an age; GLiNER labels ages
-    return True
+    # A date needs a month name or a numeric date shape. A lone number ("2", "28", "2026") is
+    # not a date: Presidio flags question numbers and counts that way, and masking them breaks text.
+    return bool(_MONTH.search(t) or _NUMERIC_DATE.search(t))
 
 
 def find(text: str) -> list[dict]:

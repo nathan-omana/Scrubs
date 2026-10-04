@@ -44,7 +44,7 @@ export default function UploadStep({ docs, onScan, onOpen, error }: Props) {
         <div className="panel__head">
           <div>
             <h2>Upload or paste a note</h2>
-            <p>Text-based PDF, or paste the note text. Synthetic data only.</p>
+            <p>Text-based PDF, or paste the note text.</p>
           </div>
         </div>
         <div className="panel__body">

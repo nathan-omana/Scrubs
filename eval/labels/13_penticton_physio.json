@@ -1,0 +1,51 @@
+[
+ {
+  "start": 36,
+  "end": 51,
+  "label": "Person",
+  "tier": "high",
+  "text": "Liam O'Sullivan"
+ },
+ {
+  "start": 70,
+  "end": 89,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Sarah Lindqvist"
+ },
+ {
+  "start": 105,
+  "end": 117,
+  "label": "Date",
+  "tier": "med",
+  "text": "Aug 28, 2026"
+ },
+ {
+  "start": 127,
+  "end": 188,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the starting goalie for the junior A hockey team in Penticton"
+ },
+ {
+  "start": 198,
+  "end": 217,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "grade II MCL sprain"
+ },
+ {
+  "start": 259,
+  "end": 268,
+  "label": "Drug",
+  "tier": "low",
+  "text": "ibuprofen"
+ },
+ {
+  "start": 269,
+  "end": 279,
+  "label": "Dose",
+  "tier": "low",
+  "text": "400 mg TID"
+ }
+]
