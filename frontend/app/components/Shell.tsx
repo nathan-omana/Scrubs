@@ -1,3 +1,4 @@
+import HowItWorks from "./HowItWorks";
 import Icon, { type IconName } from "./Icon";
 
 export type Step = "upload" | "review" | "chat";
@@ -71,7 +72,10 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, childr
             </div>
             <p className="topbar__sub">{subtitle}</p>
           </div>
-          <div className="topbar__user">Dr. A. Singh · Hope Family Clinic</div>
+          <div className="topbar__right">
+            <span className="topbar__user">Dr. A. Singh · Hope Family Clinic</span>
+            <HowItWorks />
+          </div>
         </header>
         <main className="content">{children}</main>
       </div>
