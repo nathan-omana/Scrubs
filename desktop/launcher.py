@@ -149,32 +149,95 @@ def wait_until_up(url: str, seconds: float = 120) -> bool:
     return False
 
 
-def main() -> None:
-    quiet_streams()
-    port = free_port()
-    url = f"http://127.0.0.1:{port}"
-    configure_env(port)
-    flask_app = build_app()
+_mutex = None  # held for the life of the process
 
+
+def already_running() -> bool:
+    """One copy at a time. Starting takes a while, and people click the icon again."""
+    global _mutex
+    if sys.platform != "win32":
+        return False
+    import ctypes
+    _mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\ScrubsDesktopApp")
+    return ctypes.windll.kernel32.GetLastError() == 183  # ERROR_ALREADY_EXISTS
+
+
+def tell(message: str) -> None:
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showinfo("Scrubs", message, parent=root)
+        root.destroy()
+    except Exception:
+        pass
+
+
+# Shown the moment the window opens, while the detection models load (up to a minute).
+PAGE = """<!doctype html><html><head><meta charset="utf-8"><style>
+body{{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:#f0f2f4;color:#1b1b1b}}
+header{{background:#0b2f4e;color:#fff;border-bottom:4px solid #00788a;padding:14px 32px;font-size:22px;font-weight:700}}
+main{{max-width:560px;margin:96px auto;text-align:center}}
+h1{{font-size:20px;color:#0b2f4e;margin:20px 0 8px}} p{{color:#565c65;margin:0}}
+.spin{{width:36px;height:36px;margin:0 auto;border:3px solid #d6dbe1;border-top-color:#205493;border-radius:50%;animation:s .8s linear infinite}}
+@keyframes s{{to{{transform:rotate(360deg)}}}}
+</style></head><body><header>Scrubs</header><main>{body}</main></body></html>"""
+LOADING = PAGE.format(body='<div class="spin"></div><h1>Starting Scrubs</h1>'
+                           "<p>Loading the detection models on this computer. This can take up to a minute.</p>")
+
+
+def failed_page(reason: str) -> str:
+    import html
+    return PAGE.format(body=f"<h1>Scrubs could not start</h1><p>{html.escape(reason)}</p><p>Close this window and open Scrubs again.</p>")
+
+
+def start_backend(port: int) -> str:
+    """Import the backend and serve it. Returns the URL. Slow: loads torch, spaCy, Presidio."""
+    url = f"http://127.0.0.1:{port}"
+    flask_app = build_app()
     from waitress import serve
 
     threading.Thread(target=lambda: serve(flask_app, host="127.0.0.1", port=port, threads=8), daemon=True).start()
     threading.Thread(target=warm_up, daemon=True).start()
-    wait_until_up(url)
+    if not wait_until_up(url):
+        raise RuntimeError("The local server did not start.")
+    return url
+
+
+def main() -> None:
+    quiet_streams()
+    if already_running():
+        tell("Scrubs is already open. It can take up to a minute to appear.")
+        return
+    port = free_port()
+    configure_env(port)
 
     if HEADLESS:
-        print(url, flush=True)
+        print(start_backend(port), flush=True)
         threading.Event().wait()
 
     try:
         import webview
-        webview.create_window("Scrubs", url, width=1400, height=900, min_size=(900, 600))
-        webview.start()                                # returns when the window closes
     except Exception:
-        # No embedded browser available: use the default one and keep serving until killed.
+        webview = None
+
+    if webview is None:
+        # No embedded browser available: use the default one and keep serving until closed.
         import webbrowser
-        webbrowser.open(url)
+        webbrowser.open(start_backend(port))
         threading.Event().wait()
+        return
+
+    window = webview.create_window("Scrubs", html=LOADING, width=1400, height=900, min_size=(900, 600))
+
+    def boot():
+        try:
+            window.load_url(start_backend(port))
+        except Exception as e:
+            window.load_html(failed_page(f"{type(e).__name__}: {e}"))
+
+    webview.start(boot)                                # returns when the window closes
 
 
 if __name__ == "__main__":
