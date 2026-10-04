@@ -77,7 +77,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
           </span>
           <label className="checkbox">
             <input type="checkbox" checked={showAI} onChange={(e) => setShowAI(e.target.checked)} />
-            Show encrypted version
+            Show what the AI sees
           </label>
           <button type="button" className="btn btn--primary" onClick={onDone}>
             Done, open chat
@@ -108,7 +108,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
 
           <div className="panel page">
             <div className="page__label">
-              <span>{showAI ? "Encrypted version" : "Non-encrypted version"}</span>
+              <span>{showAI ? "What the AI sees" : "Original document"}</span>
             </div>
             <div className="page__text">
               {segmentsOf(doc).map((seg, i) => {
@@ -181,7 +181,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
                 <div className="flag-row__text">&ldquo;{f.text}&rdquo;</div>
                 <div className="flag-row__reason">
                   {f.reason}
-                  {f.source === "model" && f.tier !== "low" && " · found by our model"}
+                  {(f.source === "model" || f.source === "lexicon") && f.tier !== "low" && " · Found by our model"}
                 </div>
                 <div className="flag-row__action">
                   {f.locked ? (
