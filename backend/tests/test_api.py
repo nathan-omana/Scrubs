@@ -305,6 +305,41 @@ def test_unreadable_or_clashing_date_falls_back_to_a_tag():
         app_module.DATE_OFFSET_DAYS = old
 
 
+def test_same_day_in_other_formats_is_shifted_too():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text="Pt Margaret Ellison admitted September 21, 2026 and again on Sep 28. Seen 28 Sept.")
+    out = doc["pseudonymized_text"]
+    for raw in ["September 21", "Sep 28", "28 Sept"]:
+        assert raw not in out, (raw, out)
+    sep28 = shift_date("Sep 28", app_module.DATE_OFFSET_DAYS)
+    for q in ["what about september 28?", "and 28 Sept?", "Sept. 28th"]:
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": q})
+        assert r.json["identifier_count"] == 0, (q, r.json)
+        assert sep28 in sent_to_gemini[-1][1] and "28" not in sent_to_gemini[-1][1].replace(sep28, ""), sent_to_gemini[-1]
+
+
+def test_unrelated_dates_in_chat_are_left_alone():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text=DEMO_NOTE)
+    c.post("/chat", json={"document_ids": [doc["id"]], "message": "Book a visit on Oct 30"})
+    assert sent_to_gemini[-1][1] == "Book a visit on Oct 30"
+
+
+def test_shifted_day_written_another_way_in_the_note_falls_back_to_a_tag():
+    old = app_module.DATE_OFFSET_DAYS
+    app_module.DATE_OFFSET_DAYS = -7            # Sept 28 -> Sept 21, which the note mentions as "21 September"
+    try:
+        c = client()
+        doc = ready_doc(c, text="Pt Margaret Ellison seen 21 September and Sept 28.")
+        assert flag(doc, "Sept 28")["pseudonym"].startswith("[DATE_")
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Summarize"})
+        assert r.json["identifier_count"] == 0, r.json
+    finally:
+        app_module.DATE_OFFSET_DAYS = old
+
+
 def test_chat_sends_shifted_dates_only():
     c = client()
     sent_to_gemini.clear()

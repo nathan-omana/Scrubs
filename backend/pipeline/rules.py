@@ -19,6 +19,7 @@ from presidio_analyzer import AnalyzerEngine, EntityRecognizer, Pattern, Pattern
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
 import config
+from .dates import find_dates
 
 
 # ---------- BC Personal Health Number ----------
@@ -92,6 +93,21 @@ class ContextDateRecognizer(EntityRecognizer):
         ]
 
 
+class RunningTextDateRecognizer(EntityRecognizer):
+    """
+    Dates written in running text that spaCy's small model misses: "Sep 28", "28 Sept",
+    "Sept. 28th", "September 21, 2026". Same finder tagging.py uses for chat (pipeline/dates.py).
+    """
+
+    def __init__(self):
+        super().__init__(supported_entities=["DATE_TIME"], name="RunningTextDateRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [RecognizerResult("DATE_TIME", s, e, 0.85) for s, e in find_dates(text)]
+
+
 # Presidio logs at INFO level (noisy, and debug logs could include text). Errors only.
 logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 
@@ -105,6 +121,7 @@ analyzer = AnalyzerEngine(nlp_engine=_nlp, supported_languages=["en"])
 analyzer.registry.add_recognizer(BCPHNRecognizer())
 analyzer.registry.add_recognizer(MRNRecognizer())
 analyzer.registry.add_recognizer(ContextDateRecognizer())
+analyzer.registry.add_recognizer(RunningTextDateRecognizer())
 
 # Canadian postal code, e.g. "V0R 2Z0". (First letter can't be D, F, I, O, Q, U, W, Z.)
 analyzer.registry.add_recognizer(PatternRecognizer(

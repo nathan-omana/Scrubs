@@ -7,6 +7,7 @@ restore() is the same logic in Python, for demo.py and the tests, and as a refer
 import re
 
 import config
+from .dates import find_dates, parse, same_day
 
 # Titles are stripped before lookup, so "Mrs. Park" and "Park" can share one pseudonym later.
 _TITLES = re.compile(r"^(mr|mrs|ms|miss|mx|dr|doctor|prof)\.?\s+", re.IGNORECASE)
@@ -79,14 +80,21 @@ def _part_patterns(flag: dict) -> list[str]:
     return []
 
 
+def _same_dates(text: str, flag: dict) -> list[tuple[int, int]]:
+    """For a date flag, the same day written any other way: "september 28", "28 Sept" for "Sept 28"."""
+    day = parse(flag["text"])
+    return [(s, e) for s, e in find_dates(text) if same_day(parse(text[s:e]), day)] if day else []
+
+
 def variant_spans(text: str, flag: dict, whole: bool = True, parts: bool = True,
                   min_len: int = config.MIN_REPEAT_CHARS) -> list[tuple[int, int]]:
     """
     Every (start, end) in `text` where this flag's value appears again:
       whole: the full value, whole word, any case, if it has at least `min_len` characters.
              Shorter values ("Al", "2") are only replaced where they were flagged.
-      parts: each word of a name ("Okafor" from "Daniel Okafor"), or the digits of a phone,
-             PHN, MRN or license number written any other way.
+      parts: each word of a name ("Okafor" from "Daniel Okafor"), the digits of a phone,
+             PHN, MRN or license number written any other way, or the same day written as
+             another date ("28 Sept" for "Sept 28").
     """
     patterns = []
     value = flag["text"].strip()
@@ -94,7 +102,10 @@ def variant_spans(text: str, flag: dict, whole: bool = True, parts: bool = True,
         patterns.append(_whole_word(value))
     if parts:
         patterns += _part_patterns(flag)
-    return [(m.start(), m.end()) for p in patterns for m in re.finditer(p, text, re.IGNORECASE)]
+    spans = [(m.start(), m.end()) for p in patterns for m in re.finditer(p, text, re.IGNORECASE)]
+    if parts and flag.get("type") == "DATE":
+        spans += _same_dates(text, flag)
+    return spans
 
 
 def pseudonymize(text: str, flags: list[dict]) -> str:

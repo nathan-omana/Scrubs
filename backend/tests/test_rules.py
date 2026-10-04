@@ -79,6 +79,19 @@ def test_find_real_dates():
     assert any("Sept 28" in t and ty == "DATE" for t, ty in f.items()), f
 
 
+def test_find_dates_spacy_misses():
+    for text, date in [("Seen on Sep 28.", "Sep 28"), ("seen on 28 Sept", "28 Sept"), ("Sept. 28th visit", "Sept. 28th"),
+                       ("Admitted September 21, 2026 and again on Sep 28.", "September 21, 2026")]:
+        assert found(text).get(date) == "DATE", (text, found(text))
+    assert found("Admitted September 21, 2026 and again on Sep 28.").get("Sep 28") == "DATE"
+
+
+def test_date_finder_skips_non_dates():
+    for text in ["she may 2x her dose", "for 7 days", "day 5 of antibiotics", "BP 120/80",
+                 "apixaban 5 mg BID", "follow up in 2 weeks"]:
+        assert "DATE" not in found(text).values(), (text, found(text))
+
+
 # ---------- durations and relative days are clinical, not dates ----------
 
 def test_durations_are_not_dates():
