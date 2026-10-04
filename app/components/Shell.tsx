@@ -31,10 +31,7 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, alert,
           <span className="brand__mark">
             <Icon name="shield" size={18} />
           </span>
-          <div>
-            <div className="brand__name">Scrubs</div>
-            <div className="brand__sub">De-identify before AI</div>
-          </div>
+          <div className="brand__name">Scrubs</div>
         </div>
 
         <nav aria-label="Steps">
