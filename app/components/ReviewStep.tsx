@@ -16,7 +16,9 @@ type Props = {
 };
 
 const tooltip = (f: Flag) =>
-  `${f.label} · ${f.flag_code} · ${f.tier.toUpperCase()} · ${f.locked ? "always masked" : f.masked ? "masked, click to keep" : "kept, click to mask"}`;
+  `${f.label} · ${f.flag_code} · ${f.tier.toUpperCase()} · ${f.reason} (${f.locked ? "always masked" : f.masked ? "masked, click to keep" : "kept, click to mask"})`;
+// Model and lexicon finds are what Presidio alone misses, so Review calls them out.
+const byOurModel = (f: Flag) => f.source === "model" || f.source === "lexicon";
 const spanId = (f: Flag) => `span-${f.flag_code}`;
 const rowId = (f: Flag) => `row-${f.flag_code}`;
 const reveal = (id: string) => document.getElementById(id)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -29,6 +31,7 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
   const rows = doc.flags.filter((f) => filter === "all" || f.tier === filter);
   const count = (t: Tier) => doc.flags.filter((f) => f.tier === t).length;
   const maskedCount = doc.flags.filter((f) => f.masked).length;
+  const keptCount = doc.flags.length - maskedCount;
 
   const toggle = (f: Flag) => {
     setSelected(f.flag_code);
@@ -85,7 +88,7 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
             Back
           </button>
           <button type="button" className="btn btn--primary" onClick={onDone}>
-            Confirm and continue
+            Done, open chat
           </button>
         </div>
       </div>
@@ -217,6 +220,10 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
                       <div className="flag-table__meta">
                         {f.label} · <span className="mono">{f.flag_code}</span>
                       </div>
+                      <div className="flag-table__reason">
+                        {f.reason}
+                        {byOurModel(f) && (f.reason ? " · " : "") + "Found by our model"}
+                      </div>
                     </td>
                     <td>
                       <TierTag tier={f.tier} />
@@ -253,6 +260,10 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
           </div>
 
           <div className="panel__foot">
+            <p className="flags__summary">
+              {maskedCount} {maskedCount === 1 ? "item" : "items"} masked, {keptCount} kept. Medications and diagnoses
+              are kept unless you mask them.
+            </p>
             <span className="kbd-hint">J / K</span> next item · <span className="kbd-hint">M</span> mask or keep
           </div>
         </section>

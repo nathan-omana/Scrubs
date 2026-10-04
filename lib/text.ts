@@ -33,9 +33,18 @@ export const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export type Part = { text: string; key?: string };
 
 // Splits text on any of the given keys. Unknown or altered pseudonyms are left as plain text.
+// A key that starts or ends with a letter or digit (a shifted date like "Aug 1") only matches as a
+// whole word, so it never matches inside "Aug 15". Bracket keys like "[LOC_01]" match anywhere.
+const WORD_CHAR = /[\p{L}\p{N}]/u;
+const wholeWord = (key: string) =>
+  (WORD_CHAR.test(key[0]) ? "(?<![\\p{L}\\p{N}])" : "") +
+  escape(key) +
+  (WORD_CHAR.test(key[key.length - 1]) ? "(?![\\p{L}\\p{N}])" : "");
+
 export const splitOn = (text: string, keys: string[]): Part[] => {
   if (keys.length === 0) return [{ text }];
-  const re = new RegExp(`(${[...keys].sort((a, b) => b.length - a.length).map(escape).join("|")})`, "g");
+  const alts = [...keys].sort((a, b) => b.length - a.length).map(wholeWord).join("|");
+  const re = new RegExp(`(${alts})`, "gu");
   return text
     .split(re)
     .filter(Boolean)
