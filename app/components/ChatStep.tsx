@@ -228,7 +228,7 @@ export default function ChatStep({
         {split && messages.length > 0 && (
           <div className="split-head">
             <span>What you see</span>
-            <span>What the AI saw</span>
+            <span>What the chatbot saw</span>
           </div>
         )}
 
