@@ -1,6 +1,7 @@
 """Writes the synthetic demo note to data/samples/demo_visit_note.pdf.
 
-Run from backend/:  .venv/Scripts/python -m scripts.make_sample_pdf
+Run from backend/:  python -m scripts.make_sample_pdf
+(A dev script for the synthetic sample only. The server itself never writes files.)
 """
 
 from pathlib import Path
