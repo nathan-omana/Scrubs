@@ -1,170 +1,184 @@
-// Client for the FastAPI backend (CLAUDE.md section 10).
-// PDF upload goes to the real backend (text extraction with pdfplumber). Everything else
-// is still served by an in-memory mock with the same request and response shapes.
-// Swap each body for a fetch() as the backend endpoints land.
+// Client for the Flask backend (CLAUDE.md section 10).
+// NEXT_PUBLIC_USE_MOCK=1 serves everything from the in-browser mock in ./mockApi instead,
+// for the public demo with no backend. Document text is only ever sent to API_URL.
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { ApiError, LOCKED_MSG } from "./errors";
+import * as mock from "./mockApi";
+import type { ChatResponse, Doc, Flag, NewDocument } from "./types";
 
-import { detect, makeDoc, seedDocs } from "./mockData";
-import { containsTerm, mappingOf, pseudonymize, replaceAll, sentValue } from "./text";
-import type { ChatResponse, Doc, NewDocument } from "./types";
+// Literal process.env access so Next inlines both values at build time.
+export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "1";
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace(/\/+$/, "");
 
-let store: Doc[] | null = null;
-const db = () => (store ??= seedDocs().map(finalized));
+export { ApiError } from "./errors";
 
-// Stand-ins for the Snowflake tables.
-const auditLog: unknown[] = [];
-const outboundLog: unknown[] = [];
+type Context = "documents" | "flag" | "chat" | "other";
 
-const CLINICIAN = "Dr. A. Singh";
+const NOT_FOUND_MSG = "This document is no longer on the backend. It may have restarted. Scan it again.";
 
-const copy = <T,>(v: T): T => structuredClone(v);
-const find = (id: string) => {
-  const doc = db().find((d) => d.id === id);
-  if (!doc) throw new Error(`Document ${id} not found`);
-  return doc;
-};
-const save = (doc: Doc) => {
-  store = db().map((d) => (d.id === doc.id ? doc : d));
-  return copy(doc);
-};
-function finalized(doc: Doc): Doc {
-  return { ...doc, pseudonymized_text: pseudonymize(doc), status: "ready" };
-}
-
-// GET /documents
-export async function listDocuments(): Promise<Doc[]> {
-  return copy(db());
-}
-
-// POST /documents
-export async function createDocument(input: NewDocument): Promise<Doc> {
-  const doc =
-    input.kind === "pdf"
-      ? await uploadPdf(input.file)
-      : makeDoc(`doc-${Date.now()}`, input.title.trim() || "Pasted note", "paste", input.text, new Date(), detect(input.text));
-  store = [doc, ...db()];
-  return copy(doc);
-}
-
-async function uploadPdf(file: File): Promise<Doc> {
-  const form = new FormData();
-  form.append("file", file);
+// Shared fetch wrapper. Never logs request or response bodies: they contain note text.
+async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  { timeoutMs = 20_000, context = "other" }: { timeoutMs?: number; context?: Context } = {},
+): Promise<T> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/documents`, { method: "POST", body: form });
+    res = await fetch(`${API_URL}${path}`, { ...init, signal: ctrl.signal });
   } catch {
-    throw new Error(`Can't reach the backend at ${API_URL}. Is it running?`);
-  }
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(typeof body?.detail === "string" ? body.detail : `Upload failed (${res.status}).`);
-  }
-  const doc: Doc = await res.json();
-  // Detection isn't on the backend yet, so flag the extracted text with the mock detector.
-  return doc.flags.length > 0
-    ? doc
-    : makeDoc(doc.id, doc.title, "pdf", doc.original_text, new Date(doc.created_at), detect(doc.original_text));
-}
-
-// PATCH /documents/{id}/flags/{flag_code}
-export async function setFlagMasked(id: string, flagCode: string, masked: boolean): Promise<Doc> {
-  const doc = find(id);
-  const flag = doc.flags.find((f) => f.flag_code === flagCode);
-  if (!flag) throw new Error(`Flag ${flagCode} not found`);
-  if (flag.locked) throw new Error("HIGH items are always masked");
-  auditLog.push({
-    document_id: id,
-    flag_code: flagCode,
-    label: flag.label,
-    tier: flag.tier,
-    default_masked: flag.tier !== "low",
-    final_masked: masked,
-    changed_by: CLINICIAN,
-    changed_at: new Date().toISOString(),
-  });
-  return save({
-    ...doc,
-    status: "needs_review",
-    pseudonymized_text: null,
-    flags: doc.flags.map((f) => (f.flag_code === flagCode ? { ...f, masked } : f)),
-  });
-}
-
-// POST /documents/{id}/finalize
-export async function finalizeDocument(id: string): Promise<Doc> {
-  return save(finalized(find(id)));
-}
-
-// GET /documents/{id}/mapping
-export async function getMapping(id: string): Promise<Record<string, string>> {
-  return mappingOf(find(id));
-}
-
-// POST /chat
-export async function chat(documentIds: string[], message: string): Promise<ChatResponse> {
-  const docs = documentIds.map(find).filter((d) => d.status === "ready");
-  const masked = docs.flatMap((d) => d.flags.filter((f) => f.masked));
-  const safeMessage = replaceAll(message, masked.map((f) => [f.text, f.pseudonym]));
-
-  const outbound_text = [
-    ...docs.map((d, i) => `Document ${i + 1}:\n${d.pseudonymized_text}`),
-    `Request: ${safeMessage}`,
-  ].join("\n\n");
-
-  // Leak check: no original value of a masked item may appear in what we send.
-  const identifier_count = masked.filter((f) => containsTerm(outbound_text, f.text)).length;
-  if (identifier_count > 0) {
-    return { answer_with_pseudonyms: "", outbound_text, identifier_count };
+    if (ctrl.signal.aborted) {
+      throw new ApiError(
+        "timeout",
+        `The backend at ${API_URL} took longer than ${Math.round(timeoutMs / 1000)} seconds to answer. Try again.`,
+      );
+    }
+    throw new ApiError("network", `Can't reach the backend at ${API_URL}. Check that it is running, then try again.`);
+  } finally {
+    clearTimeout(timer);
   }
 
-  outboundLog.push({ document_ids: documentIds, sent_text: outbound_text, identifier_count, model: "gemini", sent_at: new Date().toISOString() });
-  await new Promise((r) => setTimeout(r, 900));
-  return { answer_with_pseudonyms: mockAnswer(docs, message), outbound_text, identifier_count };
+  const raw = await res.text().catch(() => "");
+  let body: any = null;
+  try {
+    body = raw ? JSON.parse(raw) : null;
+  } catch {
+    body = null; // Flask error pages are HTML.
+  }
+
+  if (res.ok) return body as T;
+
+  const status = res.status;
+  const serverMsg = [body?.error, body?.detail, body?.message].find((m) => typeof m === "string" && m.trim()) as
+    | string
+    | undefined;
+
+  if (status === 403) {
+    throw new ApiError("locked", context === "flag" || !serverMsg ? LOCKED_MSG : serverMsg, 403);
+  }
+  if (status === 404 && path.startsWith("/documents/")) {
+    throw new ApiError("not_found", NOT_FOUND_MSG, 404);
+  }
+  if (context === "chat" && (body?.blocked === true || status === 422 || /block|leak/i.test(serverMsg ?? ""))) {
+    const count = Number(body?.identifier_count ?? 1) || 1;
+    throw new ApiError("blocked", serverMsg ?? "Blocked by the leak check.", status, count);
+  }
+  if (context === "chat" && status >= 500) {
+    throw new ApiError("gemini", `Gemini could not answer. ${serverMsg ?? `The backend returned ${status}.`}`, status);
+  }
+  throw new ApiError("server", serverMsg ?? `Request failed (${status}).`, status);
 }
 
-// Canned Gemini answers, written only from what Gemini would have received.
-function mockAnswer(docs: Doc[], message: string): string {
-  if (docs.length === 0) return "No documents are selected.";
-  const facts = (doc: Doc) => {
-    const by = (label: string) => doc.flags.filter((f) => f.label === label).map(sentValue);
-    const unique = (xs: string[]) => [...new Set(xs.map((x) => x.toLowerCase()))].map((x) => xs.find((y) => y.toLowerCase() === x)!);
-    const people = doc.flags.filter((f) => f.label === "Person").map(sentValue);
-    const doses = by("Dose");
-    return {
-      patient: people[0] ?? "the patient",
-      provider: people.find((p) => p.startsWith("[PROVIDER")) ?? people[1] ?? "the referring physician",
-      date: by("Date")[0],
-      diagnoses: unique(by("Diagnosis")).join(", ") || "none recorded",
-      meds: unique(by("Drug")).map((d, i) => (doses[i] ? `${d} ${doses[i]}` : d)).join(", ") || "none recorded",
-    };
+const json = (method: string, data: unknown): RequestInit => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data),
+});
+
+// Tolerate small drift in the backend shapes. Never invents flags or values.
+const FLAG_SOURCE: Record<string, Flag["source"]> = {
+  presidio: "presidio",
+  rules: "presidio",
+  model: "model",
+  gliner: "model",
+  lexicon: "lexicon",
+};
+
+function normalizeFlag(f: any): Flag {
+  return {
+    ...f,
+    reason: f.reason ?? "",
+    pseudonym: f.pseudonym ?? "",
+    locked: f.locked ?? f.tier === "high",
+    source: FLAG_SOURCE[String(f.source ?? "").toLowerCase()] ?? "presidio",
   };
-  const q = message.toLowerCase();
-
-  if (q.includes("referral")) {
-    const f = facts(docs[0]);
-    return `Dear Cardiology colleague,
-
-I am referring ${f.patient} for assessment of ${f.diagnoses}.${f.date ? ` The patient was seen on ${f.date}.` : ""}
-
-Current medications: ${f.meds}.
-
-I would value your advice on ongoing management, including anticoagulation and rate or rhythm control. I plan to see the patient again in 2 weeks.
-
-Sincerely,
-${f.provider}`;
-  }
-
-  return docs
-    .map((doc) => {
-      const f = facts(doc);
-      if (q.includes("discharge")) {
-        return `Discharge summary\n\nPatient: ${f.patient}\nDiagnoses: ${f.diagnoses}\nMedications: ${f.meds}\n\nPlan: continue current medications as documented and keep the scheduled follow-up. Seek urgent care for chest pain, fainting, or new bleeding.`;
-      }
-      if (q.includes("handoff") || q.includes("hand-off")) {
-        return `Handoff note\n\nPatient: ${f.patient}\nActive problems: ${f.diagnoses}\nMedications: ${f.meds}\nFollow-up owner: ${f.provider}`;
-      }
-      return `${f.patient}: diagnoses ${f.diagnoses}. Medications ${f.meds}.`;
-    })
-    .join("\n\n");
 }
+
+function normalizeDoc(d: any): Doc {
+  return {
+    ...d,
+    title: d.title || "Untitled document",
+    source: d.source === "pdf" ? "pdf" : "paste",
+    original_text: d.original_text ?? d.text ?? "",
+    pseudonymized_text: d.pseudonymized_text ?? null,
+    status: d.status === "ready" ? "ready" : "needs_review",
+    created_at: d.created_at ?? new Date().toISOString(),
+    flags: ((d.flags ?? []) as any[]).map(normalizeFlag).sort((a, b) => a.start_idx - b.start_idx),
+  };
+}
+
+function normalizeChat(r: any): ChatResponse {
+  return {
+    answer_with_pseudonyms: r?.answer_with_pseudonyms ?? "",
+    outbound_text: r?.outbound_text ?? "",
+    identifier_count: Number(r?.identifier_count ?? 0) || 0,
+    blocked_reason: typeof r?.blocked_reason === "string" ? r.blocked_reason : undefined,
+  };
+}
+
+const docPath = (id: string) => `/documents/${encodeURIComponent(id)}`;
+
+const real = {
+  // GET /documents
+  async listDocuments(): Promise<Doc[]> {
+    const body = await request<any>("/documents");
+    const list = Array.isArray(body) ? body : (body?.documents ?? []);
+    return (list as any[]).map(normalizeDoc);
+  },
+
+  // GET /documents/{id}
+  async getDocument(id: string): Promise<Doc> {
+    return normalizeDoc(await request<any>(docPath(id)));
+  },
+
+  // POST /documents. A backend that finds nothing returns zero flags, and we show zero flags.
+  async createDocument(input: NewDocument): Promise<Doc> {
+    let init: RequestInit;
+    if (input.kind === "pdf") {
+      const form = new FormData();
+      form.append("file", input.file);
+      init = { method: "POST", body: form }; // the browser sets the multipart boundary
+    } else {
+      init = json("POST", { title: input.title.trim() || "Pasted note", text: input.text });
+    }
+    return normalizeDoc(await request<any>("/documents", init, { timeoutMs: 120_000, context: "documents" }));
+  },
+
+  // PATCH /documents/{id}/flags/{flag_code}
+  async setFlagMasked(id: string, flagCode: string, masked: boolean): Promise<Doc> {
+    const path = `${docPath(id)}/flags/${encodeURIComponent(flagCode)}`;
+    return normalizeDoc(await request<any>(path, json("PATCH", { masked }), { context: "flag" }));
+  },
+
+  // POST /documents/{id}/finalize
+  async finalizeDocument(id: string): Promise<Doc> {
+    return normalizeDoc(await request<any>(`${docPath(id)}/finalize`, json("POST", {})));
+  },
+
+  // GET /documents/{id}/mapping
+  async getMapping(id: string): Promise<Record<string, string>> {
+    const body = await request<any>(`${docPath(id)}/mapping`);
+    const map = body && typeof body.mapping === "object" && body.mapping !== null ? body.mapping : (body ?? {});
+    return Object.fromEntries(Object.entries(map).filter(([, v]) => typeof v === "string")) as Record<string, string>;
+  },
+
+  // POST /chat
+  async chat(documentIds: string[], message: string): Promise<ChatResponse> {
+    const body = await request<any>("/chat", json("POST", { document_ids: documentIds, message }), {
+      timeoutMs: 90_000,
+      context: "chat",
+    });
+    return normalizeChat(body);
+  },
+};
+
+const impl = USE_MOCK ? mock : real;
+
+export const listDocuments = () => impl.listDocuments();
+export const getDocument = (id: string) => impl.getDocument(id);
+export const createDocument = (input: NewDocument) => impl.createDocument(input);
+export const setFlagMasked = (id: string, flagCode: string, masked: boolean) => impl.setFlagMasked(id, flagCode, masked);
+export const finalizeDocument = (id: string) => impl.finalizeDocument(id);
+export const getMapping = (id: string) => impl.getMapping(id);
+export const chat = (documentIds: string[], message: string) => impl.chat(documentIds, message);

@@ -1,4 +1,4 @@
-// Shapes mirror the FastAPI responses in CLAUDE.md section 10.
+// Shapes mirror the Flask responses in CLAUDE.md section 10.
 
 export type Tier = "high" | "med" | "low";
 
@@ -15,7 +15,7 @@ export type Flag = {
   // What replaces the text when masked: "[LOC_01]", or a shifted date.
   pseudonym: string;
   // Which pass found it. Shown in Review so the demo can point at our model.
-  source: "presidio" | "model";
+  source: "presidio" | "model" | "lexicon";
 };
 
 export type Doc = {
@@ -33,6 +33,8 @@ export type ChatResponse = {
   answer_with_pseudonyms: string;
   outbound_text: string;
   identifier_count: number;
+  // Optional: why the leak check held the message back.
+  blocked_reason?: string;
 };
 
 export type NewDocument = { kind: "pdf"; file: File } | { kind: "paste"; title: string; text: string };
