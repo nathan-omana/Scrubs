@@ -2,7 +2,10 @@
 Pseudonyms (real value -> [PATIENT_01]), pseudonymizing, and restoring Gemini's answer.
 Run from the backend folder:   python -m tests.test_tagging
 """
+from datetime import date
+
 from pipeline import tagging
+from pipeline.dates import shift_date
 from tests._util import run
 
 
@@ -149,6 +152,48 @@ def test_restore_never_crashes_on_junk():
     m = {"[PATIENT_01]": "Jane Doe"}
     for junk in ["", "[", "]", "[[PATIENT_01]]", "[PATIENT_]", "[_1]", "\x00", "[PATIENT_99999999999999999999]"]:
         tagging.restore(junk, m)
+
+
+def test_restore_swaps_shifted_dates_back():
+    m = {"[PATIENT_01]": "Jane Doe", "Aug 13": "Sept 28", "2026-08-13": "2026-09-28"}
+    out = tagging.restore("[PATIENT_01] admitted Aug 13 (2026-08-13). Aug 135 is not a date.", m)
+    assert out == "Jane Doe admitted Sept 28 (2026-09-28). Aug 135 is not a date."
+
+
+def test_restore_never_replaces_a_restored_value_again():
+    # A real date that is also another date's shifted value must not be swapped twice.
+    m = {"Aug 13": "Sept 28", "Sept 28": "Nov 12"}
+    assert tagging.restore("Aug 13 then Sept 28", m) == "Sept 28 then Nov 12"
+
+
+# ---------- date shifting ----------
+
+TODAY = date(2026, 10, 4)
+
+
+def test_shift_keeps_the_written_style():
+    cases = {"Sept 28": "Aug 13", "Sep. 28": "Aug. 13", "September 28, 2026": "August 13, 2026",
+             "28 Sept 2026": "13 Aug 2026", "Mar 14, 1951": "Jan 27, 1951", "2026-09-28": "2026-08-13",
+             "09/28/2026": "08/13/2026", "9/28": "8/13", "03-14-1951": "01-27-1951", "3/14/51": "1/27/51",
+             "28/09/2026": "13/08/2026", "Sept 28th": "Aug 13th", "SEPT 28": "AUG 13", "Oct 12": "Aug 27"}
+    for original, shifted in cases.items():
+        assert shift_date(original, -46, TODAY) == shifted, (original, shift_date(original, -46, TODAY))
+
+
+def test_shift_keeps_intervals():
+    a, b = shift_date("2026-09-21", -46, TODAY), shift_date("2026-09-28", -46, TODAY)
+    assert (date.fromisoformat(b) - date.fromisoformat(a)).days == 7
+    assert shift_date("Sept 2", -46, TODAY) == "Jul 18" and shift_date("Sept 9", -46, TODAY) == "Jul 25"
+
+
+def test_shift_crosses_month_and_year():
+    assert shift_date("Jan 10, 2026", -46, TODAY) == "Nov 25, 2025"
+    assert shift_date("Jan 10", -46, TODAY) == "Nov 25"                  # no year written, none added
+
+
+def test_unreadable_dates_return_none():
+    for junk in ["Sept 28 at 10:00", "Feb 30", "13/13", "2-3", "Sept 2026", "Monday", "", "day 5", "99/99/9999"]:
+        assert shift_date(junk, -46, TODAY) is None, junk
 
 
 # ---------- tagging the clinician's question ----------

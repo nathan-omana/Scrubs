@@ -80,15 +80,27 @@ _TAG_LIKE = re.compile(r"\[\s*([A-Za-z]+)[ _](\d+)\s*\]|\b([A-Za-z]+)_(\d+)\b")
 
 
 def restore(answer: str, mapping: dict) -> str:
-    """Swap pseudonyms in Gemini's answer back to real values. Unknown or invented ones are left alone."""
+    """
+    Swap pseudonyms in Gemini's answer back to real values. Unknown or invented ones are left alone.
+    Shifted dates ("Aug 13") have no brackets: they are swapped back as exact whole words, in the
+    same single pass, so a restored value is never replaced a second time.
+    """
+    plain = sorted((k for k in mapping if not k.startswith("[")), key=len, reverse=True)
+    pattern = _TAG_LIKE.pattern
+    if plain:
+        pattern = r"(?<!\w)(?P<plain>" + "|".join(map(re.escape, plain)) + r")(?!\w)|" + pattern
+    g = 1 if plain else 0                                     # the tag groups move up by one
+
     def swap(m: re.Match) -> str:
-        name, number = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
+        if plain and m.group("plain"):
+            return mapping[m.group("plain")]
+        name, number = (m.group(g + 1), m.group(g + 2)) if m.group(g + 1) else (m.group(g + 3), m.group(g + 4))
         name = name.upper()
         for tag in (f"[{name}_{number}]", f"[{name}_{int(number):02d}]"):   # "PATIENT_1" -> [PATIENT_01]
             if tag in mapping:
                 return mapping[tag]
         return m.group(0)
-    return _TAG_LIKE.sub(swap, answer)
+    return re.sub(pattern, swap, answer)
 
 
 def tag_question(question: str, mapping: dict) -> str:

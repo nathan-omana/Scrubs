@@ -3,13 +3,15 @@ The section 10 API, checked against the frontend contract in lib/types.ts (Doc, 
 GLiNER and Gemini are faked. Run from the backend folder:   python -m tests.test_api
 """
 import io
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import app as app_module
 import config
 import gemini_client
+from pipeline.dates import shift_date
 from tests._util import run, use_fake_gliner
 from tests.pdf_factory import build_pdf
+from tests.samples import DEMO_NOTE
 
 NOTE = open("sample_note.txt").read()
 GLINER_PHRASES = {"Margaret Ellison": "person name", "bush pilot": "occupation", "Tofino": "city or town",
@@ -68,7 +70,10 @@ def check_doc(doc):
         assert f["locked"] == (f["tier"] == "high")
         assert not f["locked"] or f["masked"], "a locked flag must be masked"
         assert f["source"] in ("presidio", "model", "lexicon")
-        assert f["pseudonym"].startswith("[") and f["pseudonym"].endswith("]") and f["pseudonym"] != "[NAME]"
+        if f["label"] == "Date" and not f["pseudonym"].startswith("["):
+            assert f["pseudonym"] != f["text"], "a shifted date must differ from the real one"
+        else:
+            assert f["pseudonym"].startswith("[") and f["pseudonym"].endswith("]") and f["pseudonym"] != "[NAME]"
         prev_end = f["end_idx"]
 
 
@@ -253,9 +258,62 @@ def test_mapping_is_masked_flags_only():
     m = c.get(f"/documents/{doc['id']}/mapping").json
     assert m[flag(doc, "Margaret Ellison")["pseudonym"]] == "Margaret Ellison"
     assert "74-year-old" not in m.values()
-    assert all(k.startswith("[") for k in m)
+    dates = {f["pseudonym"] for f in doc["flags"] if f["label"] == "Date"}
+    assert all(k.startswith("[") or k in dates for k in m)
     assert c.get("/documents/doc-nope/mapping").status_code == 404
     assert c.post("/documents/doc-nope/finalize").status_code == 404
+
+
+# ---------- date shifting ----------
+
+def test_dates_are_shifted_not_tagged():
+    # CLAUDE.md section 12 note: "Sept 28" becomes a date moved by the session's offset.
+    c = client()
+    doc = new_doc(c, text=DEMO_NOTE)
+    check_doc(doc)
+    sept = flag(doc, "Sept 28")
+    assert sept["pseudonym"] == shift_date("Sept 28", app_module.DATE_OFFSET_DAYS)
+    assert -90 <= app_module.DATE_OFFSET_DAYS <= -20
+    out = c.post(f"/documents/{doc['id']}/finalize").json["pseudonymized_text"]
+    assert "Sept 28" not in out and sept["pseudonym"] in out
+    assert c.get(f"/documents/{doc['id']}/mapping").json[sept["pseudonym"]] == "Sept 28"
+
+
+def test_shifted_dates_keep_intervals():
+    c = client()
+    doc = new_doc(c, text="Admitted 2026-09-21. Discharged 2026-09-28. Seen again on 2026-10-12.")
+    days = [date.fromisoformat(flag(doc, d)["pseudonym"]) for d in ("2026-09-21", "2026-09-28", "2026-10-12")]
+    assert (days[1] - days[0]).days == 7 and (days[2] - days[1]).days == 14
+    assert days[0] == date(2026, 9, 21) + timedelta(app_module.DATE_OFFSET_DAYS)
+
+
+def test_unreadable_or_clashing_date_falls_back_to_a_tag():
+    assert app_module.date_pseudonym("Sept 28 at 10:00", "Sept 28 at 10:00") is None
+    old = app_module.DATE_OFFSET_DAYS
+    app_module.DATE_OFFSET_DAYS = -7       # 2026-09-28 would become 2026-09-21, a real date in the note
+    try:
+        c = client()
+        doc = new_doc(c, text="Pt Margaret Ellison seen 2026-09-21 and 2026-09-28 for cough.")
+        assert flag(doc, "2026-09-28")["pseudonym"].startswith("[DATE_")
+        assert flag(doc, "2026-09-21")["pseudonym"] == "2026-09-14"
+        c.post(f"/documents/{doc['id']}/finalize")
+        sent_to_gemini.clear()
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "What happened on 2026-09-28?"})
+        assert r.json["identifier_count"] == 0, r.json            # the leak check still passes
+        assert "2026-09-21" not in r.json["outbound_text"] and "2026-09-28" not in r.json["outbound_text"]
+    finally:
+        app_module.DATE_OFFSET_DAYS = old
+
+
+def test_chat_sends_shifted_dates_only():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text=DEMO_NOTE)
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "What happened on Sept 28?"})
+    assert r.json["identifier_count"] == 0, r.json
+    shifted = flag(doc, "Sept 28")["pseudonym"]
+    note, question = sent_to_gemini[-1]
+    assert "Sept 28" not in note + question and shifted in note and shifted in question
 
 
 # ---------- chat ----------
