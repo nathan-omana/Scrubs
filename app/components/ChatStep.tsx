@@ -41,7 +41,7 @@ function YouSee({ text, mapping }: { text: string; mapping: Record<string, strin
     <>
       {splitOn(text, Object.keys(mapping)).map((p, i) =>
         p.key ? (
-          <span key={i} className="reid" title={`Gemini saw ${p.key}`}>
+          <span key={i} className="reid" title={`The chatbot saw ${p.key}`}>
             {mapping[p.key]}
           </span>
         ) : (
@@ -65,6 +65,28 @@ function AiSaw({ text, mapping }: { text: string; mapping: Record<string, string
         ),
       )}
     </>
+  );
+}
+
+// Copies the re-identified text, for pasting into the chart or a letter template.
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="btn btn--sm"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        } catch {
+          setCopied(false);
+        }
+      }}
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
   );
 }
 
@@ -148,10 +170,7 @@ export default function ChatStep({
       <aside className="chat-side">
         <section className="panel">
           <div className="panel__head">
-            <div>
-              <h2>Documents</h2>
-              <p>Only checked documents are sent</p>
-            </div>
+            <h2>Documents</h2>
             <span className="badge badge--ready">{active.length} selected</span>
           </div>
           {readyDocs.length === 0 ? (
@@ -185,7 +204,7 @@ export default function ChatStep({
 
         <section className="panel">
           <div className="panel__head">
-            <h2>What Gemini receives</h2>
+            <h2>What the chatbot receives</h2>
           </div>
           <dl className="stat-list">
             <div>
@@ -210,18 +229,14 @@ export default function ChatStep({
 
       <section className="panel chat-panel">
         <div className="panel__head panel__head--wrap">
-          <div>
-            <h2>Ask Gemini</h2>
-            <p>Answers are re-identified on your screen. Gemini never sees real values.</p>
+          <div className="prompt-row">
+            {PROMPTS.map((p) => (
+              <button key={p.label} type="button" className="btn btn--sm" disabled={!canSend} onClick={() => send(p.text)}>
+                {p.label}
+              </button>
+            ))}
           </div>
           <div className="toolbar__actions">
-            <div className="prompt-row">
-              {PROMPTS.map((p) => (
-                <button key={p.label} type="button" className="btn btn--sm" disabled={!canSend} onClick={() => send(p.text)}>
-                  {p.label}
-                </button>
-              ))}
-            </div>
             <label className="checkbox">
               <input type="checkbox" checked={split} onChange={(e) => setSplit(e.target.checked)} />
               Split view
@@ -242,7 +257,7 @@ export default function ChatStep({
               <p>
                 {active.length === 0
                   ? "Check at least one document to start."
-                  : "Ask for a referral letter, a discharge summary, or a handoff note. Gemini only gets the pseudonymized text of the checked documents."}
+                  : "Ask for a referral letter, a discharge summary, or a handoff note."}
               </p>
             </div>
           )}
@@ -256,13 +271,13 @@ export default function ChatStep({
               </div>
             ) : m.role === "user" ? (
               <div key={i} className={`msg-row ${split ? "is-split" : ""}`}>
-                <div className="bubble bubble--user">
-                  <div className="bubble__who">You</div>
+                <div className="request">
+                  <span className="request__who">Request</span>
                   {m.text}
                 </div>
                 {split && (
-                  <div className="bubble bubble--user is-ai-view">
-                    <div className="bubble__who">Sent to Gemini</div>
+                  <div className="request is-ai-view">
+                    <span className="request__who">Sent</span>
                     <AiSaw text={m.sent} mapping={m.mapping} />
                   </div>
                 )}
@@ -277,22 +292,31 @@ export default function ChatStep({
                   </div>
                 ) : (
                   <>
-                    <div className="bubble bubble--answer">
-                      <div className="bubble__who">Gemini · re-identified on your screen</div>
-                      <YouSee text={m.answer} mapping={m.mapping} />
-                    </div>
-                    {split && (
-                      <div className="bubble bubble--answer is-ai-view">
-                        <div className="bubble__who">What Gemini wrote</div>
-                        <AiSaw text={m.answer} mapping={m.mapping} />
+                    <article className="draft">
+                      <div className="draft__bar">
+                        <span className="draft__label">Draft · real names restored on your screen</span>
+                        <CopyButton text={replaceAll(m.answer, Object.entries(m.mapping))} />
                       </div>
+                      <div className="draft__page">
+                        <YouSee text={m.answer} mapping={m.mapping} />
+                      </div>
+                    </article>
+                    {split && (
+                      <article className="draft is-ai-view">
+                        <div className="draft__bar">
+                          <span className="draft__label">What the chatbot wrote</span>
+                        </div>
+                        <div className="draft__page">
+                          <AiSaw text={m.answer} mapping={m.mapping} />
+                        </div>
+                      </article>
                     )}
                   </>
                 )}
                 {m.outbound && (
                   <details className="outbound">
                     <summary>
-                      {m.identifierCount > 0 ? "Held back" : "Sent to Gemini"}: {wordCount(m.outbound)} words,{" "}
+                      {m.identifierCount > 0 ? "Held back" : "Sent to the chatbot"}: {wordCount(m.outbound)} words,{" "}
                       {m.identifierCount} identifier{m.identifierCount === 1 ? "" : "s"}
                     </summary>
                     <pre>{m.outbound}</pre>
@@ -301,7 +325,7 @@ export default function ChatStep({
               </div>
             ),
           )}
-          {thinking && <p className="thinking">Gemini is writing…</p>}
+          {thinking && <p className="thinking">Writing…</p>}
           <div ref={endRef} />
         </div>
 

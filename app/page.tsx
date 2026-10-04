@@ -14,9 +14,9 @@ const SCAN_STEPS = ["Reading the document", "First pass: identifying details", "
 const FINALIZE_STEPS = ["Pseudonymizing", "Shifting dates", "Keeping the mapping in memory only"];
 
 const HEADINGS: Record<Step, [string, string]> = {
-  upload: ["Add a document", "Upload a PDF or paste a note. Scrubs flags identifiers before anything goes to the chatbot."],
-  review: ["Review redactions", "Check every flagged item. Masked items are replaced with pseudonyms before sending."],
-  chat: ["Chat", "Gemini receives pseudonymized text only. Answers are re-identified on your screen."],
+  upload: ["Upload a patient document", ""],
+  review: ["Review redactions", ""],
+  chat: ["Ask the chatbot", ""],
 };
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
