@@ -1,71 +1,75 @@
 # Scrubs
 
-Scrubs lets clinicians use an AI chatbot on patient documents without the chatbot ever seeing who the patient is.
+Clinicians already paste patient notes into chatbots to write letters and summaries. Scrubs lets them keep doing that without the chatbot learning who the patient is.
 
-You upload a PDF or paste a note. Scrubs finds the identifiers (names, health card numbers, dates, addresses, and indirect details like "the retired town pharmacist"), lets you review each one, and replaces the masked ones with consistent pseudonyms such as `[PATIENT_01]`. Only that pseudonymized text is sent to the chatbot (Google Gemini). The answer is turned back into real names on your screen.
+You upload a PDF or paste a note. Scrubs flags the identifiers, you check them, and the ones you mask are swapped for placeholders like `[PATIENT_01]`. Only that version goes to Gemini. When the answer comes back, the real names are put back in on your screen.
 
-Built at StormHacks 2026 by Armin, Felix, Krish and Nathan. **Synthetic data only:** every document in this repo is made up.
+We built it at StormHacks 2026 (Armin, Felix, Krish and Nathan). Every document in this repo is made up. Don't put real patient data in it.
 
 ## How it works
 
-1. **Upload** a text-based PDF or paste a note.
-2. **Detect.** Presidio with BC-specific rules (PHN check digit, postal codes, MRNs, prescriber numbers), GLiNER for indirect identifiers, and a list of BC towns, facilities and roles.
-3. **Review.** Each item is tagged HIGH (always masked), MED (masked by default) or LOW (drugs, doses, diagnoses: kept by default). Click any item to mask or keep it.
-4. **Chat.** Ask for a referral letter, discharge summary or handoff note. The chatbot only receives pseudonyms. Dates are shifted by one offset per patient, so intervals stay correct.
+1. Upload a text-based PDF or paste a note.
+2. Scrubs looks for identifiers in three ways. Presidio handles the standard ones and we added BC rules to it (PHN check digit, postal codes, MRNs, prescriber numbers). GLiNER, a small local model, catches indirect ones like "the retired town pharmacist". A list of BC towns, facilities and job titles catches the rest.
+3. You review the flags. HIGH items (names, health numbers, addresses) are always masked. MED items (exact dates, small towns, employers) are masked unless you unmask them. LOW items (drugs, doses, diagnoses) are kept unless you mask them. Click any highlight to change it.
+4. You chat. Ask for a referral letter, a discharge summary or a handoff note. Gemini only gets the placeholders. Dates are moved by the same number of days, so the gaps between them stay right.
 
-Documents, flags and the pseudonym mapping live only in memory. Nothing is written to disk or a database, and everything is cleared on restart.
+Documents, flags and the placeholder mapping are kept in memory only and are gone when you restart. The one exception is the optional Snowflake audit log, which records mask and unmask decisions as counts with no document text.
 
 ## Install the desktop app (Windows)
 
-1. Download `Scrubs-0.1.0.msi` from the [Releases page](../../releases). It is about 930 MB.
-2. Double-click it. Windows shows "Windows protected your PC" because the installer isn't code-signed: click **More info**, then **Run anyway**.
-3. Follow the wizard and choose an install folder (default `C:\Program Files\Scrubs`).
-4. Open Scrubs. The first time, it asks for your Gemini API key. The key is stored in Windows Credential Manager on your computer. Leave it blank to use Scrubs without the chatbot.
-5. The window shows "Starting Scrubs" while the detection models load (up to a minute), then the app appears.
+![Installing Scrubs with the setup wizard](docs/releasetutorial.gif)
 
-Detection runs entirely on your computer. The only thing sent over the internet is the pseudonymized text you choose to send to the chatbot.
+1. Download `Scrubs-0.1.0.msi` from the [Releases page](../../releases). It's about 930 MB.
+2. Run it. The installer isn't code-signed, so Windows will show "Windows protected your PC". Click **More info**, then **Run anyway**.
+3. Pick an install folder or keep the default (`C:\Program Files\Scrubs`).
+4. Open Scrubs. The first time, it asks for a Gemini API key and saves it in Windows Credential Manager. You can leave it blank and use Scrubs without the chat.
+5. It shows "Starting Scrubs" for up to a minute while the detection models load.
 
-To change the key later, open **Credential Manager → Windows Credentials**, remove the **Scrubs** entry, and restart Scrubs. To uninstall, use **Settings → Apps**.
+Detection runs on your computer. The only thing that goes over the internet is the masked text you send to the chat.
 
-## Run it for development
+To change the API key, open Credential Manager, go to Windows Credentials, delete the **Scrubs** entry and restart the app. To uninstall, use Settings > Apps.
 
-Backend (Python 3.11):
+## Running it locally
+
+Backend, using Python 3.11:
 
 ```
 py -3.11 -m venv backend\.venv
 backend\.venv\Scripts\pip install -r requirements.txt
 backend\.venv\Scripts\python -m spacy download en_core_web_sm
-copy .env.example .env        (then add your GEMINI_API_KEY)
+copy .env.example .env
 cd backend
-.venv\Scripts\python app.py   (http://127.0.0.1:5000)
+.venv\Scripts\python app.py
 ```
+
+Put your `GEMINI_API_KEY` in `.env` before starting. The API runs on http://127.0.0.1:5000.
 
 Frontend, in a second terminal from the repo root:
 
 ```
 npm install
-npm run dev                   (http://localhost:3000)
+npm run dev
 ```
 
-Set `NEXT_PUBLIC_USE_MOCK=1` in `.env` to run the frontend on sample data with no backend.
+It runs on http://localhost:3000. To try the frontend with sample data and no backend, set `NEXT_PUBLIC_USE_MOCK=1` in `.env`.
 
-## Repo layout
+## Where things are
 
-| Path | What |
+| Path | What's there |
 |---|---|
 | `app/`, `lib/` | Next.js frontend |
-| `backend/` | Flask API and the detection pipeline (`backend/pipeline/`) |
-| `desktop/` | Windows desktop app and MSI build ([desktop/README.md](desktop/README.md)) |
-| `eval/` | Synthetic test notes and `eval/run.py`, which compares default Presidio with our pipeline ([eval/README.md](eval/README.md)) |
-| `data/` | BC lexicon and synthetic sample PDFs |
-| `CLAUDE.md` | Full project spec |
+| `backend/` | Flask API, with the detection code in `backend/pipeline/` |
+| `desktop/` | Windows app and MSI build, see [desktop/README.md](desktop/README.md) |
+| `eval/` | Synthetic test notes and `eval/run.py`, which scores default Presidio against our pipeline, see [eval/README.md](eval/README.md) |
+| `data/` | BC lexicon and sample PDFs |
+| `CLAUDE.md` | The full project spec |
 
 ## Sponsor tracks
 
-- **Gemini API:** the chatbot over pseudonymized text.
-- **TiDB:** the public BC lexicon (towns, facilities, identifying roles), downloaded read-only and matched locally.
-- **Snowflake:** audit log of mask and unmask decisions, counts only, never text.
+- Gemini API runs the chat, and only ever sees masked text.
+- TiDB holds the BC lexicon. The app downloads it read-only and matches against it locally.
+- Snowflake stores the audit log of mask and unmask decisions. It holds counts, never document text.
 
 ## Limits
 
-This is a hackathon prototype. It has not been validated for clinical use. Always review the flagged items before sending anything.
+This is a hackathon prototype and hasn't been validated for clinical use. Check the flagged items yourself before you send anything.
