@@ -355,6 +355,46 @@ def test_gemini_failure_is_a_clean_502():
     assert r.status_code == 502 and "network" not in r.json["detail"]
 
 
+class FlakyGenai:
+    """Fails with the given HTTP codes first, then answers. Counts calls."""
+
+    def __init__(self, codes):
+        self.codes, self.calls = list(codes), 0
+        self.models = self
+
+    def generate_content(self, model, contents, config):
+        self.calls += 1
+        if self.codes:
+            err = Exception("gemini error")
+            err.code = self.codes.pop(0)
+            raise err
+        return type("R", (), {"text": "Recovered answer for [PATIENT_01]."})()
+
+
+def test_gemini_busy_errors_are_retried():
+    import importlib
+    gc = importlib.reload(gemini_client)          # the real ask(), not the fake set by client()
+    gc.RETRY_WAIT_SECONDS = 0
+    old_client = gc._client
+    try:
+        gc._client = FlakyGenai([503, 503])
+        assert gc.ask("note", [], "hi") == "Recovered answer for [PATIENT_01]." and gc._client.calls == 3
+        gc._client = FlakyGenai([503, 503, 503])  # still busy after every retry: give up
+        assert raises_with_code(gc, 503) and gc._client.calls == 3
+        gc._client = FlakyGenai([404])            # wrong model or key: no retry
+        assert raises_with_code(gc, 404) and gc._client.calls == 1
+    finally:
+        gc._client = old_client
+
+
+def raises_with_code(gc, code):
+    try:
+        gc.ask("note", [], "hi")
+    except Exception as e:
+        return getattr(e, "code", None) == code
+    return False
+
+
 def test_chat_calls_audit_with_counts_only():
     calls = []
 
