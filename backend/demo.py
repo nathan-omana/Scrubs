@@ -41,7 +41,7 @@ for pseudonym, value in mapping.items():
 # 3) optional: ask Gemini, restore names
 if args.ask:
     import gemini_client
-    question = tagging.tag_question(args.ask, mapping)
+    question = tagging.tag_question(args.ask, flags)
     problem = rules.looks_unsafe(pseudonymized + question)
     if problem:
         raise SystemExit(f"Blocked: {problem}")

@@ -56,16 +56,17 @@ def test_pipeline():
         assert secret.lower() not in out.lower(), f"leaked: {secret}"
     assert "Parkinson's" in out and "7 days" in out                 # clinical meaning kept
     assert rules.looks_unsafe(out) is None
-    return tagging.mapping_of(flags)
+    return flags
 
 
-def test_restore(mapping):
+def test_restore(flags):
+    mapping = tagging.mapping_of(flags)
     patient = next(t for t, v in mapping.items() if v == "Margaret Ellison")
     assert patient == "[PATIENT_01]"
     answer = "[PATIENT_01] should rest. PATIENT_01 and [Patient 1] are fine. [PATIENT_99] unknown."
     restored = tagging.restore(answer, mapping)
     assert restored.count("Margaret Ellison") == 3 and "[PATIENT_99]" in restored
-    assert tagging.tag_question("How is margaret ellison?", mapping) == "How is [PATIENT_01]?"
+    assert tagging.tag_question("How is margaret ellison?", flags) == "How is [PATIENT_01]?"
 
 
 def test_flask():
@@ -99,7 +100,7 @@ def test_flask():
 if __name__ == "__main__":
     setup()
     test_phn()
-    mapping = test_pipeline()
-    test_restore(mapping)
+    flags = test_pipeline()
+    test_restore(flags)
     test_flask()
     print("all smoke tests passed")

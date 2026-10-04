@@ -79,6 +79,51 @@ def test_find_real_dates():
     assert any("Sept 28" in t and ty == "DATE" for t, ty in f.items()), f
 
 
+def test_find_dates_spacy_misses():
+    for text, date in [("Seen on Sep 28.", "Sep 28"), ("seen on 28 Sept", "28 Sept"), ("Sept. 28th visit", "Sept. 28th"),
+                       ("Admitted September 21, 2026 and again on Sep 28.", "September 21, 2026")]:
+        assert found(text).get(date) == "DATE", (text, found(text))
+    assert found("Admitted September 21, 2026 and again on Sep 28.").get("Sep 28") == "DATE"
+
+
+def test_date_finder_skips_non_dates():
+    for text in ["she may 2x her dose", "for 7 days", "day 5 of antibiotics", "BP 120/80",
+                 "apixaban 5 mg BID", "follow up in 2 weeks"]:
+        assert "DATE" not in found(text).values(), (text, found(text))
+
+
+def test_find_street_addresses():
+    for text, addr in [("Lives at 4820 Marine Ave in town.", "4820 Marine Ave"),
+                       ("Home: 12 Old Bridge Road, Hope.", "12 Old Bridge Road"),
+                       ("Mail to 1050-3 Fraser St. today", "1050-3 Fraser St.")]:
+        assert found(text).get(addr) == "ADDRESS", (text, found(text))
+
+
+def test_address_rule_skips_doses_durations_and_doctors():
+    for text in ["apixaban 5 mg BID", "Follow up with Dr. Singh in 2 weeks.", "Seen by Dr. Amrit Singh",
+                 "gave 2 Dr", "walks 2 blocks to the store"]:
+        assert "ADDRESS" not in found(text).values(), (text, found(text))
+
+
+def test_find_prescriber_licenses():
+    for text, number in [("Signed, CPSBC #34567", "34567"), ("License: 12345", "12345"),
+                         ("prescriber no. AB1234 on file", "AB1234"), ("College ID 40912", "40912")]:
+        assert found(text).get(number) == "LICENSE", (text, found(text))
+    assert "LICENSE" not in found("licensed practical nurse, 5 mg daily").values()
+
+
+def test_scores_are_not_dates():
+    for text in ["Pain 7/10 at rest.", "He rates pain 8/10 today.", "power 4/5 in the left arm", "VAS 3/10 overnight",
+                 "Reports 6/10 pain", "GCS 14/15 on arrival", "Pain was 7/10, now 3/10."]:
+        assert "DATE" not in found(text).values(), (text, found(text))
+
+
+def test_dates_near_score_rules_are_still_dates():
+    for text, date in [("Seen on 9/10 for follow-up.", "9/10"), ("Pt admitted 3/14 with chest pain.", "3/14"),
+                       ("DOB 03/14/1951.", "03/14/1951"), ("Seen 9/28/2026.", "9/28/2026")]:
+        assert found(text).get(date) == "DATE", (text, found(text))
+
+
 # ---------- durations and relative days are clinical, not dates ----------
 
 def test_durations_are_not_dates():
