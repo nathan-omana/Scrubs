@@ -35,6 +35,14 @@ const PROMPTS = [
   { label: "Handoff note", text: "Write a shift handoff note." },
 ];
 
+// The clinician's message exactly as the backend sent it: the part of the outbound text after the
+// last "Request: " line. Null when there is no outbound text (e.g. blocked before it was built).
+const REQUEST_MARK = "\n\nRequest: ";
+const requestPart = (outbound: string) => {
+  const i = outbound.lastIndexOf(REQUEST_MARK);
+  return i >= 0 ? outbound.slice(i + REQUEST_MARK.length) : null;
+};
+
 // Pseudonyms swapped back to real values. Unknown pseudonyms stay as written.
 function YouSee({ text, mapping }: { text: string; mapping: Record<string, string> }) {
   return (
@@ -110,12 +118,15 @@ export default function ChatStep({
       setThinking(false);
       return;
     }
+    // Placeholder until the backend answers. Its own tagging (any case, whole words) is the truth.
     const sent = replaceAll(text, Object.entries(mapping).map(([pseudo, real]) => [real, pseudo]));
-    setMessages((m) => [...m, { role: "user", text, sent, mapping }]);
+    const userMsg: ChatMessage = { role: "user", text, sent, mapping };
+    setMessages((m) => [...m, userMsg]);
     try {
       const res = await chat(ids, text);
+      const actual = requestPart(res.outbound_text);
       setMessages((m) => [
-        ...m,
+        ...(actual === null ? m : m.map((x) => (x === userMsg ? { ...userMsg, sent: actual } : x))),
         {
           role: "assistant",
           answer: res.answer_with_pseudonyms,
