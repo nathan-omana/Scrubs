@@ -34,12 +34,6 @@ export default function UploadStep({ onScan, error }: Props) {
   return (
     <div className="stack">
       <section className="panel">
-        <div className="panel__head">
-          <div>
-            <h2>Upload or paste a note</h2>
-            <p>Text-based PDF, or paste the note text.</p>
-          </div>
-        </div>
         <div className="panel__body">
           <div
             className={`dropzone ${dragging ? "is-dragging" : ""}`}
