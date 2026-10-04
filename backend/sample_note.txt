@@ -1,0 +1,12 @@
+SYNTHETIC NOTE - NOT A REAL PATIENT
+
+DISCHARGE SUMMARY - Tofino General Hospital
+Patient: Margaret Ellison   PHN: 9123 947 241   DOB: 03/14/1951
+Address: 211 Campbell St, Tofino BC V0R 2Z0   Phone: (250) 555-0142
+Admitted: 2026-09-02   Discharged: 2026-09-09 (stay: 7 days)
+
+Pt is a 74-year-old retired bush pilot, lives alone in Tofino. Daughter Claire
+(claire.ellison@example.com) is primary contact. Hx of Parkinson's disease.
+Admitted with UTI; Foley catheter placed on admission, removed day 5.
+Started on nitrofurantoin 100 mg BID x 7 days. Follow up with Dr. Raj Patel
+at the clinic in 2 weeks.
