@@ -44,7 +44,7 @@ GLINER_MODEL = os.getenv("GLINER_MODEL", "urchade/gliner_medium-v2.1")
 # Labels compete for each span, so re-check names after adding any label.
 GLINER_LABELS = {
     "person name": "PERSON",
-    "doctor": "PERSON",                 # "Dr. Raj Patel": 0.95 as doctor vs 0.29 as person name
+    "doctor": "PROVIDER",               # "Dr. Raj Patel": 0.95 as doctor vs 0.29 as person name
     "occupation": "OCCUPATION",
     "city or town": "LOCATION",
     "age": "AGE",
@@ -75,15 +75,45 @@ NEVER_REDACT = {
     "pt", "bc", "dob", "hx", "patient", "clinic",
 }
 
-# ---------- Risk ----------
-# Direct identifiers: on their own they point to a person -> always RED.
-DIRECT_TYPES = {"PERSON", "PHN", "PHONE", "EMAIL", "POSTAL", "DATE", "FACILITY", "ADDRESS"}
-# Quasi-identifiers: harmless alone, identifying in combination -> YELLOW, escalate if combined.
-QUASI_TYPES = {"OCCUPATION", "LOCATION", "AGE", "RELATION", "ORG"}
-# How many DIFFERENT quasi types in one note before the whole note is RED.
-RED_COMBINATION = 3
+# ---------- Tiers, labels, pseudonyms (CLAUDE.md sections 6 and 8) ----------
+# Internal type -> (label the frontend shows, tier, pseudonym prefix).
+# HIGH = always masked and locked. MED = masked, can unmask. LOW = kept, can mask.
+TYPES = {
+    "PERSON":     ("Person", "high", "PATIENT"),
+    "PROVIDER":   ("Person", "high", "PROVIDER"),
+    "PHN":        ("PHN", "high", "HCN"),
+    "MRN":        ("MRN", "high", "MRN"),
+    "LICENSE":    ("License", "high", "LICENSE"),
+    "ADDRESS":    ("Address", "high", "ADDRESS"),
+    "POSTAL":     ("Address", "high", "ADDRESS"),
+    "PHONE":      ("Phone", "high", "PHONE"),
+    "EMAIL":      ("Email", "high", "EMAIL"),
+    "DATE":       ("Date", "med", "DATE"),
+    "AGE":        ("Age", "med", "AGE"),
+    "LOCATION":   ("Location description", "med", "LOC"),
+    "FACILITY":   ("Location description", "med", "LOC"),
+    "OCCUPATION": ("Unique role", "med", "ROLE"),
+    "RELATION":   ("Family detail", "med", "FAMILY"),
+    "ORG":        ("Employer", "med", "EMPLOYER"),
+    "DESC":       ("Person description", "med", "DESC"),
+    "DRUG":       ("Drug", "low", "DRUG"),
+    "DOSE":       ("Dose", "low", "DOSE"),
+    "DIAGNOSIS":  ("Diagnosis", "low", "DX"),
+    "LAB":        ("Lab value", "low", "LAB"),
+}
+
+# Quasi-identifiers: harmless alone, identifying in combination ("74" + "Tofino" + "retired pilot").
+QUASI_TYPES = {"OCCUPATION", "LOCATION", "FACILITY", "AGE", "RELATION", "ORG", "DESC"}
+# How many DIFFERENT quasi kinds in one note before their reasons say "N details combined".
+COMBINATION_MIN = 3
+
+# Who the audit log records as making review decisions (no logins in this build).
+CLINICIAN = os.getenv("CLINICIAN", "Dr. A. Singh")
 
 # ---------- Upload ----------
+# Port for `python app.py`. macOS AirPlay Receiver already uses 5000, so Macs may need 5001.
+PORT = int(os.getenv("PORT", "5000"))
+
 # Browser origins allowed to call the API (CORS). Comma-separated in .env.
 FRONTEND_ORIGINS = {o.strip() for o in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",") if o.strip()}
 
