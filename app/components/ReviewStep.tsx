@@ -77,7 +77,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
           </span>
           <label className="checkbox">
             <input type="checkbox" checked={showAI} onChange={(e) => setShowAI(e.target.checked)} />
-            Show what the AI sees
+            Show encrypted version
           </label>
           <button type="button" className="btn btn--primary" onClick={onDone}>
             Done, open chat
@@ -108,7 +108,7 @@ export default function ReviewStep({ doc, onSetMasked, onReset, onDone }: Props)
 
           <div className="panel page">
             <div className="page__label">
-              <span>{showAI ? "What the AI sees" : "Original document"}</span>
+              <span>{showAI ? "Encrypted version" : "Non-encrypted version"}</span>
             </div>
             <div className="page__text">
               {segmentsOf(doc).map((seg, i) => {

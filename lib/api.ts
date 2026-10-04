@@ -1,8 +1,11 @@
 // Client for the FastAPI backend (CLAUDE.md section 10).
-// The backend isn't built yet, so every call is served by an in-memory mock with
-// the same request and response shapes. Swap each body for a fetch() when it lands.
+// PDF upload goes to the real backend (text extraction with pdfplumber). Everything else
+// is still served by an in-memory mock with the same request and response shapes.
+// Swap each body for a fetch() as the backend endpoints land.
 
-import { DEMO_NOTE, detect, makeDoc, seedDocs } from "./mockData";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+import { detect, makeDoc, seedDocs } from "./mockData";
 import { containsTerm, mappingOf, pseudonymize, replaceAll, sentValue } from "./text";
 import type { ChatResponse, Doc, NewDocument } from "./types";
 
@@ -36,14 +39,32 @@ export async function listDocuments(): Promise<Doc[]> {
 
 // POST /documents
 export async function createDocument(input: NewDocument): Promise<Doc> {
-  const id = `doc-${Date.now()}`;
   const doc =
     input.kind === "pdf"
-      ? // Mock: the backend extracts the PDF text with pdfplumber. Here every PDF reads as the demo note.
-        makeDoc(id, input.file.name.replace(/\.pdf$/i, ""), "pdf", DEMO_NOTE, new Date())
-      : makeDoc(id, input.title.trim() || "Pasted note", "paste", input.text, new Date(), detect(input.text));
+      ? await uploadPdf(input.file)
+      : makeDoc(`doc-${Date.now()}`, input.title.trim() || "Pasted note", "paste", input.text, new Date(), detect(input.text));
   store = [doc, ...db()];
   return copy(doc);
+}
+
+async function uploadPdf(file: File): Promise<Doc> {
+  const form = new FormData();
+  form.append("file", file);
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/documents`, { method: "POST", body: form });
+  } catch {
+    throw new Error(`Can't reach the backend at ${API_URL}. Is it running?`);
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(typeof body?.detail === "string" ? body.detail : `Upload failed (${res.status}).`);
+  }
+  const doc: Doc = await res.json();
+  // Detection isn't on the backend yet, so flag the extracted text with the mock detector.
+  return doc.flags.length > 0
+    ? doc
+    : makeDoc(doc.id, doc.title, "pdf", doc.original_text, new Date(doc.created_at), detect(doc.original_text));
 }
 
 // PATCH /documents/{id}/flags/{flag_code}

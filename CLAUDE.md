@@ -230,9 +230,9 @@ Reference material (not binding):
 1. Step indicator, with app name on the left and clinician name and clinic on the right ("Dr. A. Singh · Hope Family Clinic").
 2. Toolbar:
    - Left: document title and source line ("Visit note, Sept 28" / "PDF upload").
-   - Right: flag counts by tier, a checkbox "Show what the AI sees", and a primary button "Done, open chat".
+   - Right: flag counts by tier, a checkbox "Show encrypted version", and a primary button "Done, open chat".
 3. Two columns, stacking on mobile:
-   - Left (wider): legend for HIGH, MED, LOW, and unmasked. The document shown like a page, with the label "Original document". A summary line below.
+   - Left (wider): legend for HIGH, MED, LOW, and unmasked. The document shown like a page, with the label "Non-encrypted version" ("Encrypted version" when the checkbox is on). A summary line below.
    - Right (narrower): flagged items table.
 
 **The document always shows the ORIGINAL text** with spans highlighted by tier. It only shows pseudonyms when the toggle is on.
@@ -245,7 +245,7 @@ Reference material (not binding):
 **Interactions**
 - Clicking a highlight selects its row, and clicking a row selects its highlight.
 - Changing an item updates the highlight, the counts, and the audit log.
-- "Show what the AI sees" swaps masked spans for their pseudonyms and shows shifted dates.
+- "Show encrypted version" swaps masked spans for their pseudonyms and shows shifted dates.
 - Hover tooltip on highlights: "Location description · F5 · MED · 3 details combined".
 - Summary line: "N items masked, N kept. Medications and diagnoses are kept unless you mask them."
 
@@ -353,6 +353,14 @@ Record a backup video before judging. Every teammate must be able to explain whe
 Hosting: frontend on Vercel (project root is the repo root), backend on Render or Railway, both on the .tech domain.
 
 The Next.js frontend lives at the repo root (`app/`, `lib/`, `package.json`), not in a `frontend/` folder. Run it with `npm install && npm run dev` from the root.
+
+**Backend status and how to run it**
+- Built: `POST /documents` (PDF via multipart field `file`, or JSON `{title, text}`), `GET /documents`, `GET /documents/{id}`, `GET /health`. Storage is in memory until TiDB lands. Documents come back with `flags: []` because detection isn't built yet.
+- PDF extraction (`backend/app/pdf.py`): pdfplumber, pages joined with a blank line, wrapped paragraph lines rejoined so multi-word phrases stay intact for detection, ligatures and odd spaces fixed. Limits: 15 MB, 30 pages. Scanned PDFs (no text layer) return 422 with a message the UI shows. Flag offsets index into this cleaned text.
+- Frontend: `lib/api.ts` sends PDF uploads to the backend (`NEXT_PUBLIC_API_URL`, default `http://localhost:8000`). Paste, flags, finalize, mapping and chat are still mocked there; while the backend returns no flags, the mock detector flags the extracted text.
+- Use Python 3.11 for the backend (Presidio, spaCy and transformers may not support 3.14 yet).
+- Run (from `backend/`): `py -3.11 -m venv .venv`, `.venv/Scripts/pip install -r requirements-dev.txt`, `.venv/Scripts/python -m uvicorn app.main:app --reload --port 8000`. Tests: `.venv/Scripts/python -m pytest`.
+- Synthetic demo PDF: `data/samples/demo_visit_note.pdf`, regenerated with `.venv/Scripts/python -m scripts.make_sample_pdf`. Tests build PDFs with `tests/pdf_factory.py` (no extra dependencies).
 
 ```
 backend/
