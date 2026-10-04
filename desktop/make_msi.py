@@ -30,7 +30,7 @@ PRODUCT_WXS = f"""<?xml version="1.0" encoding="UTF-8"?>
            Manufacturer="Scrubs (StormHacks 2026)" UpgradeCode="{UPGRADE_CODE}">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Platform="x64"
              Description="Scrubs: pseudonymize patient documents before using a chatbot" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Scrubs is already installed." />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of Scrubs is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="medium" MaximumUncompressedMediaSize="1024" />
 
     <!-- Standard wizard: welcome, notice, choose folder, ready, progress, finish. -->
