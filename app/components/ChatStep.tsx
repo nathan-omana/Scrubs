@@ -101,7 +101,7 @@ export default function ChatStep({
 }: Props) {
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
-  const [split, setSplit] = useState(true);
+  const [split, setSplit] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   const active = readyDocs.filter((d) => selectedIds.includes(d.id));

@@ -85,7 +85,7 @@ export default function ReviewStep({ doc, onSetMasked, onSetMany, onReset, onBac
             Back
           </button>
           <button type="button" className="btn btn--primary" onClick={onDone}>
-            Confirm and continue
+            Continue
           </button>
         </div>
       </div>
