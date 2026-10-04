@@ -1,0 +1,135 @@
+[
+ {
+  "start": 27,
+  "end": 44,
+  "label": "Person",
+  "tier": "high",
+  "text": "KOWALCZYK, Teresa"
+ },
+ {
+  "start": 50,
+  "end": 58,
+  "label": "MRN",
+  "tier": "high",
+  "text": "00731845"
+ },
+ {
+  "start": 69,
+  "end": 82,
+  "label": "Date",
+  "tier": "med",
+  "text": "March 3, 2026"
+ },
+ {
+  "start": 97,
+  "end": 110,
+  "label": "Date",
+  "tier": "med",
+  "text": "March 9, 2026"
+ },
+ {
+  "start": 122,
+  "end": 138,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Victor Huang"
+ },
+ {
+  "start": 140,
+  "end": 161,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Royal Inland Hospital"
+ },
+ {
+  "start": 163,
+  "end": 171,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Kamloops"
+ },
+ {
+  "start": 177,
+  "end": 186,
+  "label": "Person",
+  "tier": "high",
+  "text": "Kowalczyk"
+ },
+ {
+  "start": 204,
+  "end": 226,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "long-haul truck driver"
+ },
+ {
+  "start": 281,
+  "end": 293,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Bell's palsy"
+ },
+ {
+  "start": 318,
+  "end": 332,
+  "label": "Clinical term",
+  "tier": "low",
+  "text": "Foley catheter"
+ },
+ {
+  "start": 348,
+  "end": 365,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "urinary retention"
+ },
+ {
+  "start": 419,
+  "end": 429,
+  "label": "Drug",
+  "tier": "low",
+  "text": "prednisone"
+ },
+ {
+  "start": 430,
+  "end": 441,
+  "label": "Dose",
+  "tier": "low",
+  "text": "60 mg daily"
+ },
+ {
+  "start": 457,
+  "end": 469,
+  "label": "Drug",
+  "tier": "low",
+  "text": "valacyclovir"
+ },
+ {
+  "start": 470,
+  "end": 477,
+  "label": "Dose",
+  "tier": "low",
+  "text": "1 g TID"
+ },
+ {
+  "start": 493,
+  "end": 509,
+  "label": "Drug",
+  "tier": "low",
+  "text": "artificial tears"
+ },
+ {
+  "start": 519,
+  "end": 524,
+  "label": "Person",
+  "tier": "high",
+  "text": "Marek"
+ },
+ {
+  "start": 526,
+  "end": 572,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "who manages the gas station on Tranquille Road"
+ }
+]

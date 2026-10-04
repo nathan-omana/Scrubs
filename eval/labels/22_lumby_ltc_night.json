@@ -1,0 +1,79 @@
+[
+ {
+  "start": 21,
+  "end": 40,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mr. Gerald Fontaine"
+ },
+ {
+  "start": 69,
+  "end": 83,
+  "label": "Clinical term",
+  "tier": "low",
+  "text": "Foley catheter"
+ },
+ {
+  "start": 112,
+  "end": 118,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Ativan"
+ },
+ {
+  "start": 119,
+  "end": 128,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.5 mg SL"
+ },
+ {
+  "start": 167,
+  "end": 185,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Cushing's syndrome"
+ },
+ {
+  "start": 190,
+  "end": 205,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "type 1 diabetes"
+ },
+ {
+  "start": 207,
+  "end": 226,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Glucose 14.2 mmol/L"
+ },
+ {
+  "start": 236,
+  "end": 252,
+  "label": "Drug",
+  "tier": "low",
+  "text": "insulin glargine"
+ },
+ {
+  "start": 253,
+  "end": 265,
+  "label": "Dose",
+  "tier": "low",
+  "text": "18 units qHS"
+ },
+ {
+  "start": 283,
+  "end": 290,
+  "label": "Person",
+  "tier": "high",
+  "text": "Monique"
+ },
+ {
+  "start": 311,
+  "end": 316,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Lumby"
+ }
+]

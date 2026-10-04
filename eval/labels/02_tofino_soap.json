@@ -1,0 +1,142 @@
+[
+ {
+  "start": 12,
+  "end": 35,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Tofino General Hospital"
+ },
+ {
+  "start": 50,
+  "end": 63,
+  "label": "Person",
+  "tier": "high",
+  "text": "Daniel Okafor"
+ },
+ {
+  "start": 70,
+  "end": 82,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9869 879 732"
+ },
+ {
+  "start": 89,
+  "end": 99,
+  "label": "Date",
+  "tier": "med",
+  "text": "1961-04-17"
+ },
+ {
+  "start": 105,
+  "end": 117,
+  "label": "Date",
+  "tier": "med",
+  "text": "Feb 11, 2026"
+ },
+ {
+  "start": 121,
+  "end": 142,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Helen Brightwater"
+ },
+ {
+  "start": 152,
+  "end": 168,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "local bush pilot"
+ },
+ {
+  "start": 237,
+  "end": 245,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Ahousaht"
+ },
+ {
+  "start": 252,
+  "end": 257,
+  "label": "Person",
+  "tier": "high",
+  "text": "Grace"
+ },
+ {
+  "start": 275,
+  "end": 290,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "type 2 diabetes"
+ },
+ {
+  "start": 292,
+  "end": 304,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "hypertension"
+ },
+ {
+  "start": 328,
+  "end": 344,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Troponin 48 ng/L"
+ },
+ {
+  "start": 356,
+  "end": 373,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "sinus tachycardia"
+ },
+ {
+  "start": 387,
+  "end": 393,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "NSTEMI"
+ },
+ {
+  "start": 398,
+  "end": 401,
+  "label": "Drug",
+  "tier": "low",
+  "text": "ASA"
+ },
+ {
+  "start": 402,
+  "end": 415,
+  "label": "Dose",
+  "tier": "low",
+  "text": "162 mg chewed"
+ },
+ {
+  "start": 417,
+  "end": 430,
+  "label": "Drug",
+  "tier": "low",
+  "text": "nitroglycerin"
+ },
+ {
+  "start": 431,
+  "end": 440,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.4 mg SL"
+ },
+ {
+  "start": 458,
+  "end": 491,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Nanaimo Regional General Hospital"
+ },
+ {
+  "start": 506,
+  "end": 518,
+  "label": "Phone",
+  "tier": "high",
+  "text": "250-555-0147"
+ }
+]
