@@ -56,7 +56,22 @@ export const replaceAll = (text: string, pairs: [string, string][]) =>
     .sort((a, b) => b[0].length - a[0].length)
     .reduce((t, [from, to]) => t.split(from).join(to), text);
 
-export const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
+// Plain text for pasting into a chart: drops **bold**, *italic*, `code` and # heading markers,
+// and turns "- " bullets into "• ". Same rules as the chat's markdown rendering.
+export const stripMarkdown = (text: string) =>
+  text
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^#{1,6}\s+/, "")
+        .replace(/^(\s*)[-*+]\s+/, "$1• ")
+        .replace(/\*\*([^*\n]+?)\*\*/g, "$1")
+        .replace(/`([^`\n]+)`/g, "$1")
+        .replace(/\*([^*\s\n][^*\n]*?)\*/g, "$1"),
+    )
+    .join("\n");
+
+export const wordCount =(text: string) => text.split(/\s+/).filter(Boolean).length;
 
 // True if value appears in text as a whole word or phrase, ignoring case.
 export const containsTerm = (text: string, value: string) =>

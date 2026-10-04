@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { chat, getMapping } from "../../lib/api";
 import { ApiError, errorText } from "../../lib/errors";
-import { replaceAll, splitOn, wordCount } from "../../lib/text";
+import { replaceAll, splitOn, stripMarkdown, wordCount } from "../../lib/text";
 import type { Doc } from "../../lib/types";
 import Icon from "./Icon";
 
@@ -44,37 +44,87 @@ const requestPart = (outbound: string) => {
   return i >= 0 ? outbound.slice(i + REQUEST_MARK.length) : null;
 };
 
-// Pseudonyms swapped back to real values. Unknown pseudonyms stay as written.
-function YouSee({ text, mapping }: { text: string; mapping: Record<string, string> }) {
+type Chunk = (text: string) => React.ReactNode;
+
+// Light markdown for the chatbot's answers: **bold**, *italic*, `code`, # headings and - bullets.
+// Line breaks stay as written (the page uses pre-wrap). No HTML is ever injected. "_" is not
+// treated as markup, because pseudonyms like [LOC_01] contain underscores.
+const INLINE = /(\*\*[^*\n]+?\*\*|`[^`\n]+`|\*[^*\s\n][^*\n]*?\*)/;
+
+function inline(text: string, chunk: Chunk): React.ReactNode[] {
+  return text
+    .split(INLINE)
+    .filter(Boolean)
+    .map((t, i) => {
+      if (t.startsWith("**") && t.endsWith("**") && t.length > 4) return <strong key={i}>{chunk(t.slice(2, -2))}</strong>;
+      if (t.startsWith("`") && t.endsWith("`") && t.length > 2) return <code key={i}>{chunk(t.slice(1, -1))}</code>;
+      if (t.startsWith("*") && t.endsWith("*") && t.length > 2) return <em key={i}>{chunk(t.slice(1, -1))}</em>;
+      return <span key={i}>{chunk(t)}</span>;
+    });
+}
+
+function Markdown({ text, chunk }: { text: string; chunk: Chunk }) {
+  const lines = text.split("\n");
   return (
     <>
-      {splitOn(text, Object.keys(mapping)).map((p, i) =>
-        p.key ? (
-          <span key={i} className="reid" title={`The chatbot saw ${p.key}`}>
-            {mapping[p.key]}
-          </span>
+      {lines.map((line, i) => {
+        const heading = line.match(/^#{1,6}\s+(.*)$/);
+        const bullet = line.match(/^(\s*)[-*+]\s+(.*)$/);
+        const body = heading ? (
+          <strong>{inline(heading[1], chunk)}</strong>
+        ) : bullet ? (
+          <>
+            {bullet[1]}• {inline(bullet[2], chunk)}
+          </>
         ) : (
-          p.text
-        ),
-      )}
+          inline(line, chunk)
+        );
+        return (
+          <span key={i}>
+            {body}
+            {i < lines.length - 1 && "\n"}
+          </span>
+        );
+      })}
     </>
   );
 }
 
-function AiSaw({ text, mapping }: { text: string; mapping: Record<string, string> }) {
-  return (
-    <>
-      {splitOn(text, Object.keys(mapping)).map((p, i) =>
-        p.key ? (
-          <span key={i} className="pseudo">
-            {p.key}
-          </span>
-        ) : (
-          p.text
-        ),
-      )}
-    </>
-  );
+// Pseudonyms swapped back to real values. Unknown pseudonyms stay as written.
+const youSeeChunk =
+  (mapping: Record<string, string>): Chunk =>
+  (text) =>
+    splitOn(text, Object.keys(mapping)).map((p, i) =>
+      p.key ? (
+        <span key={i} className="reid" title={`The chatbot saw ${p.key}`}>
+          {mapping[p.key]}
+        </span>
+      ) : (
+        p.text
+      ),
+    );
+
+const aiSawChunk =
+  (mapping: Record<string, string>): Chunk =>
+  (text) =>
+    splitOn(text, Object.keys(mapping)).map((p, i) =>
+      p.key ? (
+        <span key={i} className="pseudo">
+          {p.key}
+        </span>
+      ) : (
+        p.text
+      ),
+    );
+
+function YouSee({ text, mapping, markdown }: { text: string; mapping: Record<string, string>; markdown?: boolean }) {
+  const chunk = youSeeChunk(mapping);
+  return markdown ? <Markdown text={text} chunk={chunk} /> : <>{chunk(text)}</>;
+}
+
+function AiSaw({ text, mapping, markdown }: { text: string; mapping: Record<string, string>; markdown?: boolean }) {
+  const chunk = aiSawChunk(mapping);
+  return markdown ? <Markdown text={text} chunk={chunk} /> : <>{chunk(text)}</>;
 }
 
 // Copies the re-identified text, for pasting into the chart or a letter template.
@@ -317,10 +367,10 @@ export default function ChatStep({
                     <article className="draft">
                       <div className="draft__bar">
                         <span className="draft__label">Draft · real names restored on your screen</span>
-                        <CopyButton text={replaceAll(m.answer, Object.entries(m.mapping))} />
+                        <CopyButton text={stripMarkdown(replaceAll(m.answer, Object.entries(m.mapping)))} />
                       </div>
                       <div className="draft__page">
-                        <YouSee text={m.answer} mapping={m.mapping} />
+                        <YouSee text={m.answer} mapping={m.mapping} markdown />
                       </div>
                     </article>
                     {split && (
@@ -329,7 +379,7 @@ export default function ChatStep({
                           <span className="draft__label">What the chatbot wrote</span>
                         </div>
                         <div className="draft__page">
-                          <AiSaw text={m.answer} mapping={m.mapping} />
+                          <AiSaw text={m.answer} mapping={m.mapping} markdown />
                         </div>
                       </article>
                     )}
