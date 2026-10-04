@@ -64,6 +64,7 @@ export default function Home() {
 
   const scan = async (input: NewDocument) => {
     setScanError(null);
+    setNotice(null);
     try {
       const doc = await withLoading("Scanning document", SCAN_STEPS, api.createDocument(input));
       upsert(doc);
