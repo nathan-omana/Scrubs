@@ -373,6 +373,53 @@ def test_leak_check_never_trips_on_its_own_hiding_step():
     assert app_module.leak_check(out + " Margaret Ellison", flags)[0] == 1   # a real leak still blocks
 
 
+OKAFOR_NOTE = ("Daniel Okafor, PHN 9487 312 652, seen by Dr. Priya Sandhu. Phone (604) 555-0187. "
+               "Mr. Okafor reports chest pain. Sandhu to follow up; call 604-555-0187.")
+OKAFOR_PHRASES = {"Daniel Okafor": "person name", "Dr. Priya Sandhu": "doctor"}
+
+
+def okafor_doc(c):
+    use_fake_gliner(OKAFOR_PHRASES)
+    doc = c.post("/documents", json={"title": "t", "text": OKAFOR_NOTE}).json
+    assert {"Daniel Okafor", "Dr. Priya Sandhu", "(604) 555-0187"} <= {f["text"] for f in doc["flags"]}, doc["flags"]
+    return c.post(f"/documents/{doc['id']}/finalize").json
+
+
+def test_name_and_number_variants_never_reach_gemini():
+    c = client()
+    doc = okafor_doc(c)
+    out = doc["pseudonymized_text"]
+    for secret in ["Okafor", "Daniel", "Sandhu", "Priya", "555-0187", "9487"]:
+        assert secret not in out, (secret, out)
+    for message in ["Summarize Mr. Okafor's case", "Patient Okafor, Daniel - summarize", "Was Dr. Sandhu involved?",
+                    "Call 604-555-0187", "Call 6045550187", "PHN 9487312652"]:
+        sent_to_gemini.clear()
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": message})
+        assert r.status_code == 200 and r.json["identifier_count"] == 0, (message, r.json)
+        note, question = sent_to_gemini[-1]
+        for secret in ["okafor", "daniel", "sandhu", "6045550187", "555-0187", "9487312652"]:
+            assert secret not in (note + question).lower(), (message, question)
+
+
+def test_leak_check_catches_variants_but_not_its_own_output():
+    c = client()
+    doc = okafor_doc(c)
+    flags = app_module.DOCS[doc["id"]]["flags"]
+    assert app_module.leak_check(doc["pseudonymized_text"], flags) == (0, "")
+    for leak in ["Mr. Okafor", "okafor's", "6045550187", "604 555 0187"]:
+        assert app_module.leak_check(doc["pseudonymized_text"] + " " + leak, flags)[0] >= 1, leak
+
+
+def test_blocked_reason_keeps_upper_case_kinds():
+    c = client()
+    doc = okafor_doc(c)
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Also add PHN 9123 947 241."})
+    assert r.json["identifier_count"] == 1 and "PHN" in r.json["blocked_reason"], r.json
+    flags = app_module.DOCS[doc["id"]]["flags"]
+    reason = app_module.leak_check("Daniel Okafor", flags)[1]
+    assert reason[0].isdigit() and "masked value" in reason and "(Person)" in reason, reason
+
+
 def test_chat_requires_finalized_documents():
     c = client()
     doc = new_doc(c)
