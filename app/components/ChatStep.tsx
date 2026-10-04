@@ -2,13 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import { chat, getMapping } from "../../lib/api";
+import { ApiError, errorText } from "../../lib/errors";
 import { replaceAll, splitOn, wordCount } from "../../lib/text";
 import type { Doc } from "../../lib/types";
 import Icon from "./Icon";
 
 export type ChatMessage =
   | { role: "user"; text: string; sent: string; mapping: Record<string, string> }
-  | { role: "assistant"; answer: string; mapping: Record<string, string>; outbound: string; identifierCount: number };
+  | {
+      role: "assistant";
+      answer: string;
+      mapping: Record<string, string>;
+      outbound: string;
+      identifierCount: number;
+      blockedReason?: string;
+    }
+  | { role: "error"; text: string };
 
 type Props = {
   readyDocs: Doc[];
@@ -87,10 +96,19 @@ export default function ChatStep({
     const ids = active.map((d) => d.id);
     setDraft("");
     setThinking(true);
+    let mapping: Record<string, string>;
     try {
-      const mapping: Record<string, string> = Object.assign({}, ...(await Promise.all(ids.map(getMapping))));
-      const sent = replaceAll(text, Object.entries(mapping).map(([pseudo, real]) => [real, pseudo]));
-      setMessages((m) => [...m, { role: "user", text, sent, mapping }]);
+      mapping = Object.assign({}, ...(await Promise.all(ids.map(getMapping))));
+    } catch (err) {
+      // Nothing was sent. Give the text back so the clinician can retry.
+      setDraft(text);
+      setMessages((m) => [...m, { role: "error", text: errorText(err) }]);
+      setThinking(false);
+      return;
+    }
+    const sent = replaceAll(text, Object.entries(mapping).map(([pseudo, real]) => [real, pseudo]));
+    setMessages((m) => [...m, { role: "user", text, sent, mapping }]);
+    try {
       const res = await chat(ids, text);
       setMessages((m) => [
         ...m,
@@ -100,8 +118,22 @@ export default function ChatStep({
           mapping,
           outbound: res.outbound_text,
           identifierCount: res.identifier_count,
+          blockedReason: res.blocked_reason,
         },
       ]);
+    } catch (err) {
+      const msg: ChatMessage =
+        err instanceof ApiError && err.kind === "blocked"
+          ? {
+              role: "assistant",
+              answer: "",
+              mapping,
+              outbound: "",
+              identifierCount: err.identifierCount ?? 1,
+              blockedReason: err.message,
+            }
+          : { role: "error", text: errorText(err) };
+      setMessages((m) => [...m, msg]);
     } finally {
       setThinking(false);
     }
@@ -212,7 +244,13 @@ export default function ChatStep({
           )}
 
           {messages.map((m, i) =>
-            m.role === "user" ? (
+            m.role === "error" ? (
+              <div key={i} className="msg-row">
+                <p className="form-error" role="alert">
+                  {m.text}
+                </p>
+              </div>
+            ) : m.role === "user" ? (
               <div key={i} className={`msg-row ${split ? "is-split" : ""}`}>
                 <div className="bubble bubble--user">
                   <div className="bubble__who">You</div>
@@ -228,9 +266,10 @@ export default function ChatStep({
             ) : (
               <div key={i} className={`msg-row ${split ? "is-split" : ""}`}>
                 {m.identifierCount > 0 ? (
-                  <div className="outbound outbound--blocked">
+                  <div className="outbound outbound--blocked" role="alert">
                     Not sent. The leak check found {m.identifierCount} identifier{m.identifierCount === 1 ? "" : "s"} in
                     the outbound text.
+                    {m.blockedReason && ` Reason: ${m.blockedReason}`}
                   </div>
                 ) : (
                   <>
@@ -246,12 +285,15 @@ export default function ChatStep({
                     )}
                   </>
                 )}
-                <details className="outbound">
-                  <summary>
-                    Sent to Gemini: {wordCount(m.outbound)} words, {m.identifierCount} identifiers
-                  </summary>
-                  <pre>{m.outbound}</pre>
-                </details>
+                {m.outbound && (
+                  <details className="outbound">
+                    <summary>
+                      {m.identifierCount > 0 ? "Held back" : "Sent to Gemini"}: {wordCount(m.outbound)} words,{" "}
+                      {m.identifierCount} identifier{m.identifierCount === 1 ? "" : "s"}
+                    </summary>
+                    <pre>{m.outbound}</pre>
+                  </details>
+                )}
               </div>
             ),
           )}
