@@ -56,7 +56,6 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, alert,
         </nav>
 
         <div className="sidebar__foot">
-          <strong>Synthetic data only</strong>
           <p>
             Gemini only receives pseudonymized text. Real values stay in your browser and the clinic&apos;s backend
             memory, and are cleared on restart.
