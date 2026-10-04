@@ -1,119 +1,222 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { DEMO_NOTE, DEMO_TITLE } from "../../lib/mockData";
+import type { Doc, NewDocument } from "../../lib/types";
+import Icon from "./Icon";
+import TierTag, { tierCounts } from "./TierTag";
 
 type Props = {
-  onUpload: (file: File | null) => void;
-  loadedCount: number;
-  onSkipToChat?: () => void;
+  docs: Doc[];
+  onScan: (input: NewDocument) => void;
+  onOpen: (doc: Doc) => void;
 };
 
-export default function UploadStep({ onUpload, loadedCount, onSkipToChat }: Props) {
+const formatAdded = (iso: string) => {
+  const d = new Date(iso);
+  const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(iso).setHours(0, 0, 0, 0)) / 86_400_000);
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (days === 0) return `Today, ${time}`;
+  if (days === 1) return `Yesterday, ${time}`;
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
+export default function UploadStep({ docs, onScan, onOpen }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [title, setTitle] = useState("");
+  const [text, setText] = useState("");
 
   const pick = (f: File | undefined) => {
-    if (f && f.type === "application/pdf") setFile(f);
+    if (f && (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"))) setFile(f);
+  };
+  const canScan = file !== null || text.trim().length > 0;
+  const scan = () => {
+    if (file) onScan({ kind: "pdf", file });
+    else if (text.trim()) onScan({ kind: "paste", title, text });
   };
 
   return (
-    <div className="grid-row grid-gap-lg">
-      <section className="grid-col-12 tablet-lg:grid-col-8">
-        <div className="scrubs-panel">
-          <h1 className="scrubs-h1">Upload a patient document</h1>
-          <p className="scrubs-lead">
-            Scrubs finds names, health card numbers, dates and other identifiers, replaces them with pseudonyms, and only
-            then lets you ask Gemini about the document.
-          </p>
-
-          <div
-            className={`scrubs-dropzone ${dragging ? "is-dragging" : ""}`}
-            onDragOver={(ev) => {
-              ev.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(ev) => {
-              ev.preventDefault();
-              setDragging(false);
-              pick(ev.dataTransfer.files[0]);
-            }}
-            onClick={() => inputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="application/pdf"
-              hidden
-              onChange={(ev) => pick(ev.target.files?.[0])}
-            />
-            {file ? (
-              <>
-                <div className="scrubs-file-chip">
-                  <span className="scrubs-file-chip__type">PDF</span>
-                  <span className="scrubs-mono">{file.name}</span>
-                  <span className="text-base">{(file.size / 1024).toFixed(0)} KB</span>
-                </div>
-                <div className="margin-top-1 text-base">Click to choose a different file</div>
-              </>
-            ) : (
-              <>
-                <div className="scrubs-dropzone__title">Drag a PDF here or choose a file</div>
-                <div className="text-base">Text-based PDFs only. Scanned documents are not supported yet.</div>
-              </>
-            )}
+    <div className="stack">
+      <div className="upload-grid">
+        <section className="panel">
+          <div className="panel__head">
+            <div>
+              <h2>Upload or paste a note</h2>
+              <p>Text-based PDF, or paste the note text. Synthetic data only.</p>
+            </div>
           </div>
+          <div className="panel__body">
+            <div
+              className={`dropzone ${dragging ? "is-dragging" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                pick(e.dataTransfer.files[0]);
+              }}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                hidden
+                onChange={(e) => pick(e.target.files?.[0])}
+              />
+              <div className="dropzone__icon">
+                <Icon name="upload" size={22} />
+              </div>
+              {file ? (
+                <>
+                  <div>
+                    <span className="file-chip">
+                      <Icon name="file" />
+                      <span className="mono">{file.name}</span>
+                      <span className="muted">{Math.max(1, Math.round(file.size / 1024))} KB</span>
+                    </span>
+                  </div>
+                  <p className="dropzone__hint">Click to choose a different file</p>
+                </>
+              ) : (
+                <>
+                  <div className="dropzone__title">Drop a PDF here</div>
+                  <p className="dropzone__hint">Scanned PDFs are not supported yet.</p>
+                  <span className="btn">
+                    <Icon name="file" /> Choose a file
+                  </span>
+                </>
+              )}
+            </div>
 
-          <div className="margin-top-3 display-flex flex-align-center flex-wrap">
-            <button type="button" className="usa-button" disabled={!file} onClick={() => onUpload(file)}>
-              Scan document
-            </button>
-            <button type="button" className="usa-button usa-button--unstyled margin-left-2" onClick={() => onUpload(null)}>
-              Use a synthetic sample instead
-            </button>
-            {onSkipToChat && (
-              <button type="button" className="usa-button usa-button--outline margin-left-auto" onClick={onSkipToChat}>
-                Back to chat ({loadedCount} loaded)
+            <div className="or-divider">or paste text</div>
+
+            <label className="field">
+              <span className="field__label">Document title</span>
+              <input
+                className="input"
+                value={title}
+                placeholder="Visit note, Sept 28"
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Note text</span>
+              <textarea
+                className="textarea"
+                rows={5}
+                value={text}
+                placeholder="Paste the note here"
+                onChange={(e) => setText(e.target.value)}
+              />
+            </label>
+
+            <div className="actions">
+              <button type="button" className="btn btn--primary" disabled={!canScan} onClick={scan}>
+                Scan document
               </button>
-            )}
+              {file && (
+                <button type="button" className="link-btn" onClick={() => setFile(null)}>
+                  Remove PDF
+                </button>
+              )}
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  setFile(null);
+                  setTitle(DEMO_TITLE);
+                  setText(DEMO_NOTE);
+                }}
+              >
+                Use the demo note
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <aside className="grid-col-12 tablet-lg:grid-col-4">
-        <div className="scrubs-panel scrubs-panel--sidebar">
-          <h2 className="scrubs-h3">What happens to your file</h2>
-          <ol className="scrubs-steps-list">
-            <li>Text is extracted on our server. The PDF is not stored.</li>
-            <li>
-              <strong>Presidio</strong> flags standard identifiers.
-            </li>
-            <li>
-              <strong>Our model</strong> catches what Presidio missed and keeps drug names, doses and diagnoses.
-            </li>
-            <li>You review every flagged item before anything leaves.</li>
-            <li>Gemini only receives the pseudonymized text.</li>
+        <aside className="panel panel__body">
+          <h2 className="side-h side-h--first">
+            What happens when you scan
+          </h2>
+          <ol className="steps-list">
+            <li>Presidio flags names, numbers, and dates.</li>
+            <li>Our model flags indirect details Presidio misses, like &ldquo;the retired town pharmacist&rdquo;.</li>
+            <li>Drug names, doses, and diagnoses are kept by default.</li>
+            <li>You review every flagged item. Gemini only receives the pseudonymized text.</li>
           </ol>
-          <h2 className="scrubs-h3 margin-top-3">Risk levels</h2>
-          <dl className="scrubs-legend">
+          <h2 className="side-h">Tiers</h2>
+          <dl className="tier-legend">
             <dt>
-              <span className="scrubs-tag scrubs-tag--high">HIGH</span>
+              <TierTag tier="high" />
             </dt>
-            <dd>Always masked. Names, health card numbers, MRNs, addresses, phones.</dd>
+            <dd>Always masked. Names, health card numbers, MRNs, addresses, phone numbers.</dd>
             <dt>
-              <span className="scrubs-tag scrubs-tag--medium">MED</span>
+              <TierTag tier="med" />
             </dt>
-            <dd>Masked by default. Exact dates, ages over 89, small towns, employers.</dd>
+            <dd>Masked by default. Exact dates, small towns, employers, unique roles, family details.</dd>
             <dt>
-              <span className="scrubs-tag scrubs-tag--low">LOW</span>
+              <TierTag tier="low" />
             </dt>
             <dd>Kept by default. Drugs, doses, diagnoses, lab values.</dd>
           </dl>
+        </aside>
+      </div>
+
+      <section className="panel">
+        <div className="panel__head">
+          <div>
+            <h2>Scanned documents</h2>
+            <p>Open one to review it, or to use it in chat once it is ready.</p>
+          </div>
         </div>
-      </aside>
+        {docs.length === 0 ? (
+          <p className="empty">No documents yet.</p>
+        ) : (
+          <ul className="doc-list">
+            {docs.map((doc) => (
+              <li key={doc.id}>
+                <div className="doc-row">
+                  <span className="doc-row__icon">
+                    <Icon name={doc.source === "pdf" ? "file" : "paste"} />
+                  </span>
+                  <div className="doc-row__main">
+                    <div className="doc-row__title">{doc.title}</div>
+                    <div className="doc-row__meta">
+                      {doc.source === "pdf" ? "PDF upload" : "Pasted text"} · {formatAdded(doc.created_at)}
+                    </div>
+                  </div>
+                  <div className="doc-row__right">
+                    <span className="tier-counts">
+                      {tierCounts(doc.flags).map(({ tier, count }) => (
+                        <TierTag key={tier} tier={tier} count={count} />
+                      ))}
+                    </span>
+                    {doc.status === "ready" ? (
+                      <span className="badge badge--ready">
+                        <Icon name="check" size={12} /> Ready
+                      </span>
+                    ) : (
+                      <span className="badge">Needs review</span>
+                    )}
+                    <button type="button" className="btn btn--sm" onClick={() => onOpen(doc)}>
+                      Review
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
