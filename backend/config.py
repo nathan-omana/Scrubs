@@ -9,6 +9,9 @@ load_dotenv()  # reads ../.env or ./.env if present (API keys etc.)
 # ---------- Gemini (the only thing that talks to the internet) ----------
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")  # check Google's docs for the current model name
+# Tried in order when the main model stays busy (503 "high demand"). Comma-separated in .env.
+GEMINI_FALLBACK_MODELS = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.7-flash,gemini-3.5-flash")
+                          .split(",") if m.strip()]
 
 # ---------- Presidio (layer 1: rules) ----------
 # spaCy model Presidio uses for its built-in PERSON detection.
