@@ -38,34 +38,41 @@ def test_phn():
 
 def test_pipeline():
     text = open("sample_note.txt").read()
-    result = pipeline.analyze(text)
-    found = {s["text"]: s for s in result["spans"]}
-    assert found["9123 947 241"]["type"] == "PHN"
+    flags = pipeline.analyze(text)
+    found = {f["text"]: f for f in flags}
+    assert found["9123 947 241"]["label"] == "PHN" and found["9123 947 241"]["tier"] == "high"
+    assert found["9123 947 241"]["locked"] and found["9123 947 241"]["masked"]
     assert "Parkinson's" not in found and "Foley" not in found      # never-redact list works
     assert "day 5" not in found and "7 days" not in found           # durations kept
-    assert "retired bush pilot" in found and found["retired bush pilot"]["type"] == "OCCUPATION"
-    assert result["risk"] == "RED"                                  # town + age + occupation + relation
-    tagged, mapping = tagging.tag_text(text, result["spans"], {s["id"] for s in result["spans"]})
+    assert found["retired bush pilot"]["label"] == "Unique role" and found["retired bush pilot"]["tier"] == "med"
+    reason = found["retired bush pilot"]["reason"]
+    assert reason.startswith("5 details combined: ") and all(k in reason for k in ["age", "facility", "family", "role", "town"])
+    assert [f["flag_code"] for f in flags] == [f"F{i}" for i in range(1, len(flags) + 1)]
+    p = tagging.Pseudonyms()
+    for f in flags:
+        f["pseudonym"] = p.get(config.TYPES[f["type"]][2], f["text"])
+    out = tagging.pseudonymize(text, flags)
     for secret in ["Margaret", "Ellison", "9123", "Tofino", "Raj", "claire.ellison", "555-0142", "Campbell"]:
-        assert secret.lower() not in tagged.lower(), f"leaked: {secret}"
-    assert "Parkinson's" in tagged and "7 days" in tagged           # clinical meaning kept
-    assert rules.looks_unsafe(tagged) is None
-    return mapping
+        assert secret.lower() not in out.lower(), f"leaked: {secret}"
+    assert "Parkinson's" in out and "7 days" in out                 # clinical meaning kept
+    assert rules.looks_unsafe(out) is None
+    return tagging.mapping_of(flags)
 
 
 def test_restore(mapping):
-    person = next(t for t, v in mapping.items() if v == "Margaret Ellison")
-    n = person.strip("[]").split("_")[1]
-    answer = f"{person} should rest. PERSON_{n} and [Person {n}] are fine. [PERSON_99] unknown."
+    patient = next(t for t, v in mapping.items() if v == "Margaret Ellison")
+    assert patient == "[PATIENT_01]"
+    answer = "[PATIENT_01] should rest. PATIENT_01 and [Patient 1] are fine. [PATIENT_99] unknown."
     restored = tagging.restore(answer, mapping)
-    assert restored.count("Margaret Ellison") == 3 and "[PERSON_99]" in restored
-    assert tagging.tag_question("How is margaret ellison?", mapping) == f"How is {person}?"
+    assert restored.count("Margaret Ellison") == 3 and "[PATIENT_99]" in restored
+    assert tagging.tag_question("How is margaret ellison?", mapping) == "How is [PATIENT_01]?"
 
 
 def test_flask():
     import app as app_module
     import gemini_client
-    gemini_client.ask = lambda note, history, q: "Fake answer about [PERSON_1]"   # no real API call
+    gemini_client.ask = lambda note, history, q: "Fake answer about [PATIENT_01]"   # no real API call
+    config.GEMINI_API_KEY = "test-key"
     c = app_module.app.test_client()
 
     # upload a ~600 KB file (Werkzeug would normally spill >500 KB to disk): must stay in memory (no temp file on disk)
@@ -73,22 +80,20 @@ def test_flask():
     stream = app_module.InMemoryRequest._get_file_stream(None, None, None, None)
     assert isinstance(stream, io.BytesIO)
     config.MAX_TEXT_CHARS = 700_000                      # temporarily allow the big test file
-    r = c.post("/analyze", data={"file": (io.BytesIO(big), "note.txt")}, content_type="multipart/form-data")
+    r = c.post("/documents", data={"file": (io.BytesIO(big), "note.txt")}, content_type="multipart/form-data")
     config.MAX_TEXT_CHARS = 200_000
-    assert r.status_code == 200 and r.json["risk"] == "RED"
+    assert r.status_code == 201 and r.json["status"] == "needs_review"
 
-    spans = r.json["spans"]
-    t = c.post("/tag", json={"text": r.json["text"], "spans": spans, "remove_ids": [s["id"] for s in spans]})
-    assert t.status_code == 200
+    doc_id = r.json["id"]
+    f = c.post(f"/documents/{doc_id}/finalize")
+    assert f.status_code == 200 and f.json["status"] == "ready"
 
-    ok = c.post("/chat", json={"tagged_note": t.json["tagged_text"], "history": [], "question": "Summarize"})
-    assert ok.status_code == 200 and ok.json["answer"].startswith("Fake")
+    ok = c.post("/chat", json={"document_ids": [doc_id], "message": "Summarize"})
+    assert ok.status_code == 200 and ok.json["answer_with_pseudonyms"].startswith("Fake")
+    assert ok.json["identifier_count"] == 0
 
-    too_long = c.post("/analyze", json={"text": "a " * 150_000})
+    too_long = c.post("/documents", json={"title": "", "text": "a " * 150_000})
     assert too_long.status_code == 413
-
-    blocked = c.post("/chat", json={"tagged_note": "PHN 9123947241", "history": [], "question": "hi"})
-    assert blocked.status_code == 400                          # raw PHN never leaves
 
 
 if __name__ == "__main__":
