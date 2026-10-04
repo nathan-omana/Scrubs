@@ -39,137 +39,108 @@ export default function UploadStep({ docs, onScan, onOpen }: Props) {
 
   return (
     <div className="stack">
-      <div className="upload-grid">
-        <section className="panel">
-          <div className="panel__head">
-            <div>
-              <h2>Upload or paste a note</h2>
-              <p>Text-based PDF, or paste the note text. Synthetic data only.</p>
-            </div>
+      <section className="panel">
+        <div className="panel__head">
+          <div>
+            <h2>Upload or paste a note</h2>
+            <p>Text-based PDF, or paste the note text. Synthetic data only.</p>
           </div>
-          <div className="panel__body">
-            <div
-              className={`dropzone ${dragging ? "is-dragging" : ""}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => inputRef.current?.click()}
-              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-                pick(e.dataTransfer.files[0]);
+        </div>
+        <div className="panel__body">
+          <div
+            className={`dropzone ${dragging ? "is-dragging" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => inputRef.current?.click()}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              pick(e.dataTransfer.files[0]);
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              hidden
+              onChange={(e) => pick(e.target.files?.[0])}
+            />
+            <div className="dropzone__icon">
+              <Icon name="upload" size={22} />
+            </div>
+            {file ? (
+              <>
+                <div>
+                  <span className="file-chip">
+                    <Icon name="file" />
+                    <span className="mono">{file.name}</span>
+                    <span className="muted">{Math.max(1, Math.round(file.size / 1024))} KB</span>
+                  </span>
+                </div>
+                <p className="dropzone__hint">Click to choose a different file</p>
+              </>
+            ) : (
+              <>
+                <div className="dropzone__title">Drop a PDF here</div>
+                <p className="dropzone__hint">Scanned PDFs are not supported yet.</p>
+                <span className="btn">
+                  <Icon name="file" /> Choose a file
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="or-divider">or paste text</div>
+
+          <label className="field">
+            <span className="field__label">Document title</span>
+            <input
+              className="input"
+              value={title}
+              placeholder="Visit note, Sept 28"
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">Note text</span>
+            <textarea
+              className="textarea"
+              rows={5}
+              value={text}
+              placeholder="Paste the note here"
+              onChange={(e) => setText(e.target.value)}
+            />
+          </label>
+
+          <div className="actions">
+            <button type="button" className="btn btn--primary" disabled={!canScan} onClick={scan}>
+              Scan document
+            </button>
+            {file && (
+              <button type="button" className="link-btn" onClick={() => setFile(null)}>
+                Remove PDF
+              </button>
+            )}
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                setFile(null);
+                setTitle(DEMO_TITLE);
+                setText(DEMO_NOTE);
               }}
             >
-              <input
-                ref={inputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                hidden
-                onChange={(e) => pick(e.target.files?.[0])}
-              />
-              <div className="dropzone__icon">
-                <Icon name="upload" size={22} />
-              </div>
-              {file ? (
-                <>
-                  <div>
-                    <span className="file-chip">
-                      <Icon name="file" />
-                      <span className="mono">{file.name}</span>
-                      <span className="muted">{Math.max(1, Math.round(file.size / 1024))} KB</span>
-                    </span>
-                  </div>
-                  <p className="dropzone__hint">Click to choose a different file</p>
-                </>
-              ) : (
-                <>
-                  <div className="dropzone__title">Drop a PDF here</div>
-                  <p className="dropzone__hint">Scanned PDFs are not supported yet.</p>
-                  <span className="btn">
-                    <Icon name="file" /> Choose a file
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="or-divider">or paste text</div>
-
-            <label className="field">
-              <span className="field__label">Document title</span>
-              <input
-                className="input"
-                value={title}
-                placeholder="Visit note, Sept 28"
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">Note text</span>
-              <textarea
-                className="textarea"
-                rows={5}
-                value={text}
-                placeholder="Paste the note here"
-                onChange={(e) => setText(e.target.value)}
-              />
-            </label>
-
-            <div className="actions">
-              <button type="button" className="btn btn--primary" disabled={!canScan} onClick={scan}>
-                Scan document
-              </button>
-              {file && (
-                <button type="button" className="link-btn" onClick={() => setFile(null)}>
-                  Remove PDF
-                </button>
-              )}
-              <button
-                type="button"
-                className="link-btn"
-                onClick={() => {
-                  setFile(null);
-                  setTitle(DEMO_TITLE);
-                  setText(DEMO_NOTE);
-                }}
-              >
-                Use the demo note
-              </button>
-            </div>
+              Use the demo note
+            </button>
           </div>
-        </section>
-
-        <aside className="panel panel__body">
-          <h2 className="side-h side-h--first">
-            What happens when you scan
-          </h2>
-          <ol className="steps-list">
-            <li>Presidio flags names, numbers, and dates.</li>
-            <li>Our model flags indirect details Presidio misses, like &ldquo;the retired town pharmacist&rdquo;.</li>
-            <li>Drug names, doses, and diagnoses are kept by default.</li>
-            <li>You review every flagged item. Gemini only receives the pseudonymized text.</li>
-          </ol>
-          <h2 className="side-h">Tiers</h2>
-          <dl className="tier-legend">
-            <dt>
-              <TierTag tier="high" />
-            </dt>
-            <dd>Always masked. Names, health card numbers, MRNs, addresses, phone numbers.</dd>
-            <dt>
-              <TierTag tier="med" />
-            </dt>
-            <dd>Masked by default. Exact dates, small towns, employers, unique roles, family details.</dd>
-            <dt>
-              <TierTag tier="low" />
-            </dt>
-            <dd>Kept by default. Drugs, doses, diagnoses, lab values.</dd>
-          </dl>
-        </aside>
-      </div>
+        </div>
+      </section>
 
       <section className="panel">
         <div className="panel__head">
