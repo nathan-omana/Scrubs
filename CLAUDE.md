@@ -350,7 +350,9 @@ Record a backup video before judging. Every teammate must be able to explain whe
 
 **Python · FastAPI · Presidio · GLiNER · Hugging Face · pdfplumber · TiDB · Snowflake · Gemini API · React/Next.js · .tech**
 
-Hosting: frontend on Vercel, backend on Render or Railway, both on the .tech domain.
+Hosting: frontend on Vercel (project root is the repo root), backend on Render or Railway, both on the .tech domain.
+
+The Next.js frontend lives at the repo root (`app/`, `lib/`, `package.json`), not in a `frontend/` folder. Run it with `npm install && npm run dev` from the root.
 
 ```
 backend/
@@ -366,8 +368,10 @@ backend/
   app/audit.py          Snowflake
   app/llm.py            Gemini client, system prompt, leak check
   tests/
-frontend/
-  (Next.js app: Upload, Review, Chat; theme file for the TBD design system)
+app/                    Next.js frontend: page.tsx, components/ (Upload, Review, Chat)
+  theme.css             theme tokens for the TBD design system
+lib/                    frontend API client (api.ts), types, mock data
+package.json            frontend dependencies
 model/
   train/  data_gen/
 eval/
