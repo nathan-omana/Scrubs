@@ -1,0 +1,6 @@
+Geriatric assessment
+[[Mrs. Dorothy "Dot" McAllister|Person]], [[90|Age]], lives independently in [[Grand Forks|Location description]].
+Seen [[Sept 22, 2026|Date]].
+
+She is [[the longest-serving organist at the Grand Forks United Church|Unique role]] and still plays most Sundays. Family concerned about missed appointments. [[MoCA 19/30|Lab value]], consistent with [[mild cognitive impairment|Diagnosis]], possibly early [[Alzheimer's disease|Diagnosis]]. [[B12 145 pmol/L|Lab value]].
+Start [[donepezil|Drug]] [[5 mg daily|Dose]] and [[cyanocobalamin|Drug]] [[1000 mcg daily|Dose]]. Daughter-in-law [[Patricia|Person]] will manage the blister pack.

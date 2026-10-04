@@ -1,0 +1,100 @@
+[
+ {
+  "start": 21,
+  "end": 50,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mrs. Dorothy \"Dot\" McAllister"
+ },
+ {
+  "start": 52,
+  "end": 54,
+  "label": "Age",
+  "tier": "med",
+  "text": "90"
+ },
+ {
+  "start": 79,
+  "end": 90,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Grand Forks"
+ },
+ {
+  "start": 97,
+  "end": 110,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 22, 2026"
+ },
+ {
+  "start": 120,
+  "end": 181,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the longest-serving organist at the Grand Forks United Church"
+ },
+ {
+  "start": 256,
+  "end": 266,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "MoCA 19/30"
+ },
+ {
+  "start": 284,
+  "end": 309,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "mild cognitive impairment"
+ },
+ {
+  "start": 326,
+  "end": 345,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Alzheimer's disease"
+ },
+ {
+  "start": 347,
+  "end": 361,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "B12 145 pmol/L"
+ },
+ {
+  "start": 369,
+  "end": 378,
+  "label": "Drug",
+  "tier": "low",
+  "text": "donepezil"
+ },
+ {
+  "start": 379,
+  "end": 389,
+  "label": "Dose",
+  "tier": "low",
+  "text": "5 mg daily"
+ },
+ {
+  "start": 394,
+  "end": 408,
+  "label": "Drug",
+  "tier": "low",
+  "text": "cyanocobalamin"
+ },
+ {
+  "start": 409,
+  "end": 423,
+  "label": "Dose",
+  "tier": "low",
+  "text": "1000 mcg daily"
+ },
+ {
+  "start": 441,
+  "end": 449,
+  "label": "Person",
+  "tier": "high",
+  "text": "Patricia"
+ }
+]

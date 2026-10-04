@@ -1,0 +1,9 @@
+From: [[dr.kaur@example.com|Email]]
+Subject: quick referral
+
+Hi [[Jen|Person]],
+
+Can you see [[Oliver Beaumont|Person]] (PHN [[9822 264 688|PHN]], cell [[778-555-0133|Phone]]) next week? He is [[the twin brother of our clinic manager|Family detail]], so please keep this discreet. [[Recurrent kidney stones|Diagnosis]], on [[tamsulosin|Drug]] [[0.4 mg daily|Dose]], [[24h urine calcium 9.8 mmol/day|Lab value]].
+
+Thanks,
+[[Harjit|Person]]

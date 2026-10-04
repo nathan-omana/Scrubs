@@ -1,0 +1,128 @@
+[
+ {
+  "start": 21,
+  "end": 41,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Stuart Lake Hospital"
+ },
+ {
+  "start": 43,
+  "end": 50,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 25"
+ },
+ {
+  "start": 55,
+  "end": 65,
+  "label": "Person",
+  "tier": "high",
+  "text": "J. Ramirez"
+ },
+ {
+  "start": 75,
+  "end": 92,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "COPD exacerbation"
+ },
+ {
+  "start": 102,
+  "end": 112,
+  "label": "Drug",
+  "tier": "low",
+  "text": "prednisone"
+ },
+ {
+  "start": 114,
+  "end": 126,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "pCO2 52 mmHg"
+ },
+ {
+  "start": 134,
+  "end": 181,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the RCMP detachment commander in Fort St. James"
+ },
+ {
+  "start": 216,
+  "end": 225,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mrs. Wong"
+ },
+ {
+  "start": 235,
+  "end": 237,
+  "label": "Age",
+  "tier": "med",
+  "text": "91"
+ },
+ {
+  "start": 239,
+  "end": 264,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "dementia with Lewy bodies"
+ },
+ {
+  "start": 290,
+  "end": 301,
+  "label": "Drug",
+  "tier": "low",
+  "text": "haloperidol"
+ },
+ {
+  "start": 307,
+  "end": 314,
+  "label": "Person",
+  "tier": "high",
+  "text": "Kenneth"
+ },
+ {
+  "start": 349,
+  "end": 355,
+  "label": "Person",
+  "tier": "high",
+  "text": "Sandhu"
+ },
+ {
+  "start": 365,
+  "end": 378,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "bronchiolitis"
+ },
+ {
+  "start": 380,
+  "end": 392,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "RSV positive"
+ },
+ {
+  "start": 408,
+  "end": 446,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "Mother is a teacher at the band school"
+ },
+ {
+  "start": 460,
+  "end": 477,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Chidi Okonkwo"
+ },
+ {
+  "start": 479,
+  "end": 487,
+  "label": "Person",
+  "tier": "high",
+  "text": "K. Patel"
+ }
+]
