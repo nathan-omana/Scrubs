@@ -1,0 +1,121 @@
+[
+ {
+  "start": 28,
+  "end": 44,
+  "label": "Person",
+  "tier": "high",
+  "text": "Gurpreet Dhillon"
+ },
+ {
+  "start": 54,
+  "end": 69,
+  "label": "Address",
+  "tier": "high",
+  "text": "11871 84 Avenue"
+ },
+ {
+  "start": 71,
+  "end": 76,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Delta"
+ },
+ {
+  "start": 81,
+  "end": 88,
+  "label": "Address",
+  "tier": "high",
+  "text": "V4C 2L7"
+ },
+ {
+  "start": 96,
+  "end": 108,
+  "label": "Phone",
+  "tier": "high",
+  "text": "604-555-0175"
+ },
+ {
+  "start": 116,
+  "end": 128,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9815 188 447"
+ },
+ {
+  "start": 140,
+  "end": 150,
+  "label": "Date",
+  "tier": "med",
+  "text": "2026-09-27"
+ },
+ {
+  "start": 161,
+  "end": 171,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "HbA1c 9.1%"
+ },
+ {
+  "start": 173,
+  "end": 187,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "LDL 3.4 mmol/L"
+ },
+ {
+  "start": 189,
+  "end": 196,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "eGFR 52"
+ },
+ {
+  "start": 214,
+  "end": 229,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "type 2 diabetes"
+ },
+ {
+  "start": 254,
+  "end": 261,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "CKD G3a"
+ },
+ {
+  "start": 272,
+  "end": 281,
+  "label": "Drug",
+  "tier": "low",
+  "text": "metformin"
+ },
+ {
+  "start": 285,
+  "end": 296,
+  "label": "Dose",
+  "tier": "low",
+  "text": "1000 mg BID"
+ },
+ {
+  "start": 305,
+  "end": 318,
+  "label": "Drug",
+  "tier": "low",
+  "text": "empagliflozin"
+ },
+ {
+  "start": 319,
+  "end": 330,
+  "label": "Dose",
+  "tier": "low",
+  "text": "10 mg daily"
+ },
+ {
+  "start": 377,
+  "end": 394,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Mei Ling Zhou"
+ }
+]

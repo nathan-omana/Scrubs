@@ -1,0 +1,6 @@
+Gastroenterology consult
+Patient: [[Ms. Fatima Haddad|Person]], 34   MRN [[5520184|MRN]]
+Referring physician: [[Dr. Paul Beaulieu|Person]]
+
+[[Crohn's disease|Diagnosis]], ileocolonic, on [[Humira|Drug]] [[40 mg SC every 2 weeks|Dose]]. Also [[Graves' disease|Diagnosis]], treated with [[methimazole|Drug]] [[10 mg daily|Dose]]. Recent [[CRP 38 mg/L|Lab value]] and [[fecal calprotectin 620 ug/g|Lab value]] suggest active disease. She is the [[head chef|Unique role]] at [[Alpine Crest Lodge|Employer]] in [[Whistler|Location description]] and works long shifts.
+Plan: add [[budesonide|Drug]] [[9 mg daily|Dose]], colonoscopy on [[Nov 14|Date]].

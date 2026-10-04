@@ -1,0 +1,79 @@
+[
+ {
+  "start": 6,
+  "end": 25,
+  "label": "Email",
+  "tier": "high",
+  "text": "dr.kaur@example.com"
+ },
+ {
+  "start": 54,
+  "end": 57,
+  "label": "Person",
+  "tier": "high",
+  "text": "Jen"
+ },
+ {
+  "start": 72,
+  "end": 87,
+  "label": "Person",
+  "tier": "high",
+  "text": "Oliver Beaumont"
+ },
+ {
+  "start": 93,
+  "end": 105,
+  "label": "PHN",
+  "tier": "high",
+  "text": "9822 264 688"
+ },
+ {
+  "start": 112,
+  "end": 124,
+  "label": "Phone",
+  "tier": "high",
+  "text": "778-555-0133"
+ },
+ {
+  "start": 143,
+  "end": 181,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "the twin brother of our clinic manager"
+ },
+ {
+  "start": 213,
+  "end": 236,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Recurrent kidney stones"
+ },
+ {
+  "start": 241,
+  "end": 251,
+  "label": "Drug",
+  "tier": "low",
+  "text": "tamsulosin"
+ },
+ {
+  "start": 252,
+  "end": 264,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.4 mg daily"
+ },
+ {
+  "start": 266,
+  "end": 296,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "24h urine calcium 9.8 mmol/day"
+ },
+ {
+  "start": 307,
+  "end": 313,
+  "label": "Person",
+  "tier": "high",
+  "text": "Harjit"
+ }
+]

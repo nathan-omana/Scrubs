@@ -1,0 +1,100 @@
+[
+ {
+  "start": 11,
+  "end": 24,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 29, 2026"
+ },
+ {
+  "start": 26,
+  "end": 41,
+  "label": "Person",
+  "tier": "high",
+  "text": "Agnes Thibodeau"
+ },
+ {
+  "start": 43,
+  "end": 45,
+  "label": "Age",
+  "tier": "med",
+  "text": "96"
+ },
+ {
+  "start": 47,
+  "end": 75,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "metastatic pancreatic cancer"
+ },
+ {
+  "start": 92,
+  "end": 154,
+  "label": "Location description",
+  "tier": "med",
+  "text": "the last farmhouse on Lower Nicola Road past the rodeo grounds"
+ },
+ {
+  "start": 164,
+  "end": 215,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the valley's one-room schoolteacher for forty years"
+ },
+ {
+  "start": 266,
+  "end": 279,
+  "label": "Drug",
+  "tier": "low",
+  "text": "hydromorphone"
+ },
+ {
+  "start": 280,
+  "end": 295,
+  "label": "Dose",
+  "tier": "low",
+  "text": "2 mg SC q1h PRN"
+ },
+ {
+  "start": 330,
+  "end": 336,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Haldol"
+ },
+ {
+  "start": 337,
+  "end": 350,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.5 mg SC q8h"
+ },
+ {
+  "start": 369,
+  "end": 376,
+  "label": "Person",
+  "tier": "high",
+  "text": "Corinne"
+ },
+ {
+  "start": 378,
+  "end": 408,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "who runs the bakery in Merritt"
+ },
+ {
+  "start": 446,
+  "end": 458,
+  "label": "Phone",
+  "tier": "high",
+  "text": "250-555-0109"
+ },
+ {
+  "start": 504,
+  "end": 526,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Nicola Valley Hospital"
+ }
+]

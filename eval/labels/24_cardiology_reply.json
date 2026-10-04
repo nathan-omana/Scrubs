@@ -1,0 +1,93 @@
+[
+ {
+  "start": 5,
+  "end": 14,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Singh"
+ },
+ {
+  "start": 41,
+  "end": 56,
+  "label": "Person",
+  "tier": "high",
+  "text": "Noah Fitzgerald"
+ },
+ {
+  "start": 70,
+  "end": 83,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Down syndrome"
+ },
+ {
+  "start": 90,
+  "end": 103,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "repaired AVSD"
+ },
+ {
+  "start": 136,
+  "end": 149,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "BNP 210 pg/mL"
+ },
+ {
+  "start": 171,
+  "end": 198,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "left AV valve regurgitation"
+ },
+ {
+  "start": 215,
+  "end": 225,
+  "label": "Drug",
+  "tier": "low",
+  "text": "furosemide"
+ },
+ {
+  "start": 226,
+  "end": 237,
+  "label": "Dose",
+  "tier": "low",
+  "text": "20 mg daily"
+ },
+ {
+  "start": 250,
+  "end": 256,
+  "label": "Person",
+  "tier": "high",
+  "text": "Claire"
+ },
+ {
+  "start": 258,
+  "end": 293,
+  "label": "Family detail",
+  "tier": "med",
+  "text": "the principal of Agassiz Elementary"
+ },
+ {
+  "start": 360,
+  "end": 382,
+  "label": "Location description",
+  "tier": "med",
+  "text": "BC Children's Hospital"
+ },
+ {
+  "start": 386,
+  "end": 398,
+  "label": "Date",
+  "tier": "med",
+  "text": "Jan 12, 2027"
+ },
+ {
+  "start": 401,
+  "end": 415,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Rosa Amari"
+ }
+]
