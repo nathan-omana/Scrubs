@@ -414,14 +414,14 @@ def test_gemini_failure_is_a_clean_502():
 
 
 class FlakyGenai:
-    """Fails with the given HTTP codes first, then answers. Counts calls."""
+    """Fails with the given HTTP codes first, then answers. Records which model each call used."""
 
     def __init__(self, codes):
-        self.codes, self.calls = list(codes), 0
+        self.codes, self.models_used = list(codes), []
         self.models = self
 
     def generate_content(self, model, contents, config):
-        self.calls += 1
+        self.models_used.append(model)
         if self.codes:
             err = Exception("gemini error")
             err.code = self.codes.pop(0)
@@ -429,20 +429,25 @@ class FlakyGenai:
         return type("R", (), {"text": "Recovered answer for [PATIENT_01]."})()
 
 
-def test_gemini_busy_errors_are_retried():
+def test_gemini_busy_errors_retry_then_fall_back():
     import importlib
     gc = importlib.reload(gemini_client)          # the real ask(), not the fake set by client()
     gc.RETRY_WAIT_SECONDS = 0
-    old_client = gc._client
+    old = (gc._client, config.GEMINI_MODEL, config.GEMINI_FALLBACK_MODELS)
+    config.GEMINI_MODEL, config.GEMINI_FALLBACK_MODELS = "main", ["backup1", "backup2"]
     try:
-        gc._client = FlakyGenai([503, 503])
-        assert gc.ask("note", [], "hi") == "Recovered answer for [PATIENT_01]." and gc._client.calls == 3
-        gc._client = FlakyGenai([503, 503, 503])  # still busy after every retry: give up
-        assert raises_with_code(gc, 503) and gc._client.calls == 3
-        gc._client = FlakyGenai([404])            # wrong model or key: no retry
-        assert raises_with_code(gc, 404) and gc._client.calls == 1
+        gc._client = FlakyGenai([503])                       # busy once: retry the same model
+        assert gc.ask("note", [], "hi").startswith("Recovered") and gc._client.models_used == ["main", "main"]
+        assert gc.last_model == "main"
+        gc._client = FlakyGenai([503, 503])                  # main stays busy: fall back
+        gc.ask("note", [], "hi")
+        assert gc._client.models_used == ["main", "main", "backup1"] and gc.last_model == "backup1"
+        gc._client = FlakyGenai([503] * 6)                   # everything busy: give up with the 503
+        assert raises_with_code(gc, 503) and len(gc._client.models_used) == 6
+        gc._client = FlakyGenai([404])                       # wrong model or key: no retry, no fallback
+        assert raises_with_code(gc, 404) and gc._client.models_used == ["main"]
     finally:
-        gc._client = old_client
+        gc._client, config.GEMINI_MODEL, config.GEMINI_FALLBACK_MODELS = old
 
 
 def raises_with_code(gc, code):
