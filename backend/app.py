@@ -279,7 +279,7 @@ def chat():
         return error("Gemini request failed. Try again.", 502)
 
     call_audit("log_outbound", document_ids=ids, word_count=word_count(outbound_text),
-               identifier_count=0, model=config.GEMINI_MODEL)
+               identifier_count=0, model=gemini_client.last_model or config.GEMINI_MODEL)
     log.info("chat: sent %d words, 0 identifiers", word_count(outbound_text))
     return jsonify(answer_with_pseudonyms=answer, outbound_text=outbound_text, identifier_count=0)
 
