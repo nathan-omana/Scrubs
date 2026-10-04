@@ -43,7 +43,7 @@ class BCPHNRecognizer(PatternRecognizer):
     def __init__(self):
         super().__init__(
             supported_entity="PHN",
-            patterns=[Pattern("bc_phn", r"\b9\d{3}[ -]?\d{3}[ -]?\d{3}\b", 0.5)],
+            patterns=[Pattern("bc_phn", r"\b9\d{3}[ .-]?\d{3}[ .-]?\d{3}\b", 0.5)],
         )
 
     def validate_result(self, pattern_text: str) -> bool:
@@ -120,7 +120,7 @@ def find(text: str) -> list[dict]:
 
 
 # ---------- Last-resort check used right before anything is sent to Gemini ----------
-_PHN_ANYWHERE = re.compile(r"\b9\d{3}[ -]?\d{3}[ -]?\d{3}\b")
+_PHN_ANYWHERE = re.compile(r"\b9\d{3}[ .-]?\d{3}[ .-]?\d{3}\b")      # 9123947241, 9123 947 241, 9123-947-241, 9123.947.241
 _EMAIL_ANYWHERE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]+\b")
 
 

@@ -39,11 +39,15 @@ log = logging.getLogger("scrubin")
 
 
 @app.after_request
-def allow_local_frontend(resp):
-    # Lets a frontend dev server on another localhost port call us during development.
-    # Lock this down (or remove it) before anything is deployed.
-    resp.headers["Access-Control-Allow-Origin"] = "*"
-    resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+def allow_frontend(resp):
+    # CORS: only the frontend's origin may call us from a browser (CLAUDE.md section 14, rule 7).
+    # Any other website gets no CORS header, so the browser blocks it from reading responses.
+    origin = request.headers.get("Origin")
+    if origin in config.FRONTEND_ORIGINS:
+        resp.headers["Access-Control-Allow-Origin"] = origin
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, OPTIONS"
+    resp.headers["Vary"] = "Origin"
     return resp
 
 

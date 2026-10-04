@@ -31,16 +31,34 @@ def _chunks(text: str, max_chars: int) -> list[tuple[int, str]]:
     chunk's starting position so we can map results back to the full note.
     """
     pieces, start, end = [], 0, 0
-    for m in re.finditer(r"[^\n]*\n|[^\n]+$", text):   # one line at a time (keeps the "\n")
-        if m.end() - start > max_chars and end > start:
+    for seg_start, seg_end in _segments(text, max_chars):
+        if seg_end - start > max_chars and end > start:
             pieces.append((start, text[start:end]))      # close the current chunk
-            start = m.start()
-        end = m.end()
+            start = seg_start
+        end = seg_end
     if end > start:
         pieces.append((start, text[start:end]))
     return pieces
-    # Note: a single line longer than max_chars still becomes one chunk.
-    # GLiNER will truncate it. Fine for now; split on sentences later if notes have huge lines.
+
+
+def _segments(text: str, max_chars: int):
+    """
+    Yield (start, end) for each line. A line longer than max_chars is cut into smaller pieces,
+    at a sentence end if there is one in the second half of the window, else at a space.
+    This matters: pdf.py joins each paragraph into one line, and GLiNER silently ignores
+    everything past its ~384-token window, so a long line would hide identifiers at its end.
+    """
+    for m in re.finditer(r"[^\n]*\n|[^\n]+$", text):   # one line at a time (keeps the "\n")
+        s, e = m.start(), m.end()
+        while e - s > max_chars:
+            window = text[s:s + max_chars]
+            cut = max(window.rfind(". "), window.rfind("; "), window.rfind("? "), window.rfind("! "))
+            if cut < max_chars // 2:
+                cut = window.rfind(" ")
+            cut = cut + 1 if cut > 0 else max_chars      # keep the punctuation; hard cut if no space at all
+            yield s, s + cut
+            s += cut
+        yield s, e
 
 
 def detect(text: str) -> list[dict]:
