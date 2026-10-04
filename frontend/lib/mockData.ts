@@ -1,149 +1,217 @@
-// Mock data for the UI mockup. Everything here is synthetic.
-// Shape mirrors what the backend should eventually return from /analyze.
+// Synthetic documents and a fake detector for the UI. Nothing here is real patient data.
+// The backend replaces all of this (Presidio + our model + TiDB vault).
 
-export type Risk = "HIGH" | "MEDIUM" | "LOW";
+import type { Doc, Flag, Tier } from "./types";
 
-export type Entity = {
-  id: string;
+type Spec = {
   text: string;
-  type: string; // e.g. PERSON, HEALTH_CARD, DRUG
-  risk: Risk;
-  pseudonym: string;
-  source: "Presidio" | "Model" | "Both";
-  confidence: number;
+  label: string;
+  tier: Tier;
+  reason: string;
+  source: Flag["source"];
+  prefix?: string; // pseudonym prefix, e.g. "PATIENT"
+  shifted?: string; // for dates: the shifted value instead of a pseudonym
 };
 
-// A document is a list of plain-text chunks and detected entities, in order.
-export type Segment = string | Entity;
-
-export type ScrubbedDoc = {
-  id: string;
-  fileName: string;
-  title: string;
-  pages: number;
-  segments: Segment[];
-};
-
-const e = (
-  id: string,
+const s = (
   text: string,
-  type: string,
-  risk: Risk,
-  pseudonym: string,
-  source: Entity["source"] = "Presidio",
-  confidence = 0.95,
-): Entity => ({ id, text, type, risk, pseudonym, source, confidence });
+  label: string,
+  tier: Tier,
+  reason: string,
+  source: Flag["source"],
+  replace: { prefix: string } | { shifted: string },
+): Spec => ({ text, label, tier, reason, source, ...replace });
 
-const dischargeSummary: ScrubbedDoc = {
-  id: "doc-1",
-  fileName: "discharge_summary_0412.pdf",
-  title: "Discharge Summary",
-  pages: 2,
-  segments: [
-    "DISCHARGE SUMMARY\n\nPatient: ",
-    e("d1-1", "Margaret Chen", "PERSON", "HIGH", "[PATIENT_01]", "Both", 0.99),
-    "    PHN: ",
-    e("d1-2", "9876 543 210", "BC_HEALTH_CARD", "HIGH", "[HCN_01]", "Presidio", 0.98),
-    "    MRN: ",
-    e("d1-3", "VGH-0048213", "MRN", "HIGH", "[MRN_01]", "Model", 0.91),
-    "\nDOB: ",
-    e("d1-4", "1934-02-17", "DATE_OF_BIRTH", "HIGH", "[DOB_01]", "Presidio", 0.97),
-    "    Age: ",
-    e("d1-5", "91", "AGE_OVER_89", "MEDIUM", "[AGE_90+]", "Model", 0.88),
-    "\nAddress: ",
-    e("d1-6", "2231 Cedar Crescent, Hope, BC V0X 1L0", "ADDRESS", "HIGH", "[ADDRESS_01]", "Both", 0.96),
-    "\nPhone: ",
-    e("d1-7", "604-555-0182", "PHONE", "HIGH", "[PHONE_01]", "Presidio", 0.99),
-    "\n\nAdmitted: ",
-    e("d1-8", "2026-03-28", "DATE", "MEDIUM", "2026-01-11", "Presidio", 0.93),
-    "    Discharged: ",
-    e("d1-9", "2026-04-12", "DATE", "MEDIUM", "2026-01-26", "Presidio", 0.93),
-    "\nAttending: Dr. ",
-    e("d1-10", "Rajiv Malhotra", "PERSON", "HIGH", "[CLINICIAN_01]", "Presidio", 0.97),
-    " (CPSBC #",
-    e("d1-11", "31877", "PRESCRIBER_ID", "HIGH", "[LICENSE_01]", "Model", 0.86),
-    ")\n\nReason for admission: ",
-    e("d1-12", "Community-acquired pneumonia", "DIAGNOSIS", "LOW", "[DIAGNOSIS_01]", "Model", 0.94),
-    " with ",
-    e("d1-13", "atrial fibrillation", "DIAGNOSIS", "LOW", "[DIAGNOSIS_02]", "Model", 0.92),
-    ".\n\nHospital course: Patient was transferred from ",
-    e("d1-14", "Fraser Canyon Hospital", "FACILITY", "MEDIUM", "[FACILITY_01]", "Model", 0.84),
-    " in a small rural community. Started on IV ",
-    e("d1-15", "Ceftriaxone", "DRUG", "LOW", "[DRUG_01]", "Model", 0.97),
-    " ",
-    e("d1-16", "1 g", "DOSE", "LOW", "[DOSE_01]", "Model", 0.9),
-    " daily. Rate control with ",
-    e("d1-17", "Diltiazem", "DRUG", "LOW", "[DRUG_02]", "Model", 0.95),
-    ". Daughter ",
-    e("d1-18", "Lily Chen", "PERSON", "HIGH", "[CONTACT_01]", "Both", 0.97),
-    " visited daily. Patient retired from ",
-    e("d1-19", "Hope Sawmill Co.", "EMPLOYER", "MEDIUM", "[EMPLOYER_01]", "Model", 0.79),
-    " in 1998.\n\nDischarge medications:\n  - ",
-    e("d1-20", "Apixaban", "DRUG", "LOW", "[DRUG_03]", "Model", 0.96),
-    " ",
-    e("d1-21", "2.5 mg", "DOSE", "LOW", "[DOSE_02]", "Model", 0.93),
-    " PO BID\n  - ",
-    e("d1-22", "Amoxicillin", "DRUG", "LOW", "[DRUG_04]", "Model", 0.97),
-    " ",
-    e("d1-23", "500 mg", "DOSE", "LOW", "[DOSE_03]", "Model", 0.93),
-    " PO TID x 5 days\n\nLast creatinine: ",
-    e("d1-24", "118 µmol/L", "LAB_VALUE", "LOW", "[LAB_01]", "Model", 0.89),
-    "\nFollow-up with family physician in 2 weeks.",
-  ],
+const KEPT = "Clinical term, kept by default";
+
+// CLAUDE.md section 12: the demo note and its expected flags.
+export const DEMO_TITLE = "Visit note, Sept 28";
+export const DEMO_NOTE =
+  "Mrs. Eleanor Park, 72, MRN 4482913, was admitted on Sept 28 after a fall at her home, the small red house beside the Hope community hall. She is the retired town pharmacist, and her daughter, a nurse at Fraser Canyon Hospital, visits daily. History of atrial fibrillation. Weight 112 kg. Started on apixaban 5 mg BID. Follow up with Dr. Amrit Singh in 2 weeks.";
+
+const DEMO_SPECS: Spec[] = [
+  s("Mrs. Eleanor Park", "Person", "high", "Patient name", "presidio", { prefix: "PATIENT" }),
+  s("4482913", "MRN", "high", "Medical record number", "presidio", { prefix: "MRN" }),
+  s("Sept 28", "Date", "med", "Exact date", "presidio", { shifted: "Aug 13" }),
+  s("the small red house beside the Hope community hall", "Location description", "med",
+    "3 details combined: colour, size, landmark", "model", { prefix: "LOC" }),
+  s("the retired town pharmacist", "Unique role", "med", "Only one person in a small town likely fits", "model",
+    { prefix: "ROLE" }),
+  s("a nurse at Fraser Canyon Hospital", "Family detail", "med", "Relative with job and workplace", "model",
+    { prefix: "FAMILY" }),
+  s("atrial fibrillation", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
+  s("apixaban", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("5 mg BID", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Dr. Amrit Singh", "Person", "high", "Provider name", "presidio", { prefix: "PROVIDER" }),
+];
+
+const DISCHARGE_TEXT = `DISCHARGE SUMMARY
+
+Patient: Margaret Chen    PHN: 9876 543 210    MRN: VGH-0048213
+DOB: 1934-02-17    Age: 91
+Address: 2231 Cedar Crescent, Hope, BC V0X 1L0
+Phone: 604-555-0182
+
+Admitted: 2026-03-28    Discharged: 2026-04-12
+Attending: Dr. Rajiv Malhotra (CPSBC #31877)
+
+Reason for admission: Community-acquired pneumonia with atrial fibrillation.
+
+Hospital course: Patient was transferred from Fraser Canyon Hospital. Started on IV Ceftriaxone 1 g daily. Rate control with Diltiazem. Daughter Lily Chen visited daily. Patient retired from Hope Sawmill Co. in 1998.
+
+Discharge medications:
+  - Apixaban 2.5 mg PO BID
+  - Amoxicillin 500 mg PO TID x 5 days
+
+Last creatinine: 118 µmol/L
+Follow-up with family physician in 2 weeks.`;
+
+const DISCHARGE_SPECS: Spec[] = [
+  s("Margaret Chen", "Person", "high", "Patient name", "presidio", { prefix: "PATIENT" }),
+  s("9876 543 210", "BC PHN", "high", "BC health card number", "presidio", { prefix: "HCN" }),
+  s("VGH-0048213", "MRN", "high", "Medical record number", "presidio", { prefix: "MRN" }),
+  s("1934-02-17", "Date", "med", "Date of birth", "presidio", { shifted: "1933-12-03" }),
+  s("91", "Age over 89", "med", "Ages over 89 are rare", "model", { prefix: "AGE" }),
+  s("2231 Cedar Crescent, Hope, BC V0X 1L0", "Address", "high", "Home address", "presidio", { prefix: "ADDRESS" }),
+  s("604-555-0182", "Phone", "high", "Phone number", "presidio", { prefix: "PHONE" }),
+  s("2026-03-28", "Date", "med", "Exact date", "presidio", { shifted: "2026-01-11" }),
+  s("2026-04-12", "Date", "med", "Exact date", "presidio", { shifted: "2026-01-26" }),
+  s("Dr. Rajiv Malhotra", "Person", "high", "Provider name", "presidio", { prefix: "PROVIDER" }),
+  s("31877", "Prescriber license", "high", "Prescriber license number", "presidio", { prefix: "LICENSE" }),
+  s("Community-acquired pneumonia", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
+  s("atrial fibrillation", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
+  s("Fraser Canyon Hospital", "Location", "med", "Hospital in a small town", "model", { prefix: "LOC" }),
+  s("Ceftriaxone", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("1 g", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Diltiazem", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("Lily Chen", "Person", "high", "Relative's name", "presidio", { prefix: "FAMILY" }),
+  s("Hope Sawmill Co.", "Employer", "med", "Small-town employer", "model", { prefix: "EMPLOYER" }),
+  s("Apixaban", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("2.5 mg", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Amoxicillin", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("500 mg", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("118 µmol/L", "Lab value", "low", KEPT, "model", { prefix: "LAB" }),
+];
+
+const MEDREC_TEXT = `MEDICATION RECONCILIATION
+
+Patient: J. Singh    PHN: 9123 456 789
+Date of review: 2026-05-02
+Pharmacist: Emma Tremblay
+
+Current medications:
+  - Metformin 1000 mg PO BID
+  - Lisinopril 10 mg PO daily
+  - Atorvastatin 40 mg PO qHS
+
+Diagnoses: Type 2 diabetes mellitus, hypertension
+Last HbA1c: 7.9%
+
+Notes: Works night shifts at Surrey Memorial Hospital; missed evening Metformin doses. Contact at jsingh82@example.com.`;
+
+const MEDREC_SPECS: Spec[] = [
+  s("J. Singh", "Person", "high", "Patient name", "presidio", { prefix: "PATIENT" }),
+  s("9123 456 789", "BC PHN", "high", "BC health card number", "presidio", { prefix: "HCN" }),
+  s("2026-05-02", "Date", "med", "Exact date", "presidio", { shifted: "2026-02-14" }),
+  s("Emma Tremblay", "Person", "high", "Provider name", "presidio", { prefix: "PROVIDER" }),
+  s("Metformin", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("1000 mg", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Lisinopril", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("10 mg", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Atorvastatin", "Drug", "low", KEPT, "model", { prefix: "DRUG" }),
+  s("40 mg", "Dose", "low", KEPT, "model", { prefix: "DOSE" }),
+  s("Type 2 diabetes mellitus", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
+  s("hypertension", "Diagnosis", "low", KEPT, "model", { prefix: "DIAGNOSIS" }),
+  s("7.9%", "Lab value", "low", KEPT, "model", { prefix: "LAB" }),
+  s("Surrey Memorial Hospital", "Employer", "med", "Workplace", "model", { prefix: "EMPLOYER" }),
+  s("jsingh82@example.com", "Email", "high", "Email address", "presidio", { prefix: "EMAIL" }),
+];
+
+// Same real value gets the same pseudonym across documents (CLAUDE.md section 8).
+const pseudonyms = new Map<string, string>();
+const counters = new Map<string, number>();
+const normalize = (v: string) => v.toLowerCase().replace(/^(mrs|mr|ms|dr)\.?\s+/, "").trim();
+
+const pseudonymFor = (spec: Spec) => {
+  if (spec.shifted) return spec.shifted;
+  const key = `${spec.prefix}:${normalize(spec.text)}`;
+  let p = pseudonyms.get(key);
+  if (!p) {
+    const n = (counters.get(spec.prefix!) ?? 0) + 1;
+    counters.set(spec.prefix!, n);
+    p = `[${spec.prefix}_${String(n).padStart(2, "0")}]`;
+    pseudonyms.set(key, p);
+  }
+  return p;
 };
 
-const medicationReview: ScrubbedDoc = {
-  id: "doc-2",
-  fileName: "med_reconciliation_JS.pdf",
-  title: "Medication Reconciliation",
-  pages: 1,
-  segments: [
-    "MEDICATION RECONCILIATION\n\nPatient: ",
-    e("d2-1", "J. Singh", "PERSON", "HIGH", "[PATIENT_02]", "Both", 0.97),
-    "    PHN: ",
-    e("d2-2", "9123 456 789", "BC_HEALTH_CARD", "HIGH", "[HCN_02]", "Presidio", 0.98),
-    "\nDate of review: ",
-    e("d2-3", "2026-05-02", "DATE", "MEDIUM", "2026-02-14", "Presidio", 0.94),
-    "\nPharmacist: ",
-    e("d2-4", "Emma Tremblay", "PERSON", "HIGH", "[CLINICIAN_02]", "Presidio", 0.96),
-    "\n\nCurrent medications:\n  - ",
-    e("d2-5", "Metformin", "DRUG", "LOW", "[DRUG_05]", "Model", 0.97),
-    " ",
-    e("d2-6", "1000 mg", "DOSE", "LOW", "[DOSE_04]", "Model", 0.92),
-    " PO BID\n  - ",
-    e("d2-7", "Lisinopril", "DRUG", "LOW", "[DRUG_06]", "Model", 0.96),
-    " ",
-    e("d2-8", "10 mg", "DOSE", "LOW", "[DOSE_05]", "Model", 0.92),
-    " PO daily\n  - ",
-    e("d2-9", "Atorvastatin", "DRUG", "LOW", "[DRUG_07]", "Model", 0.96),
-    " ",
-    e("d2-10", "40 mg", "DOSE", "LOW", "[DOSE_06]", "Model", 0.92),
-    " PO qHS\n\nDiagnoses: ",
-    e("d2-11", "Type 2 diabetes mellitus", "DIAGNOSIS", "LOW", "[DIAGNOSIS_03]", "Model", 0.95),
-    ", ",
-    e("d2-12", "hypertension", "DIAGNOSIS", "LOW", "[DIAGNOSIS_04]", "Model", 0.94),
-    "\nLast HbA1c: ",
-    e("d2-13", "7.9%", "LAB_VALUE", "LOW", "[LAB_02]", "Model", 0.9),
-    "\n\nNotes: Works night shifts at ",
-    e("d2-14", "Surrey Memorial Hospital", "EMPLOYER", "MEDIUM", "[EMPLOYER_02]", "Model", 0.81),
-    "; missed evening Metformin doses. Contact at ",
-    e("d2-15", "jsingh82@example.com", "EMAIL", "HIGH", "[EMAIL_01]", "Presidio", 0.99),
-    ".",
-  ],
+// Number the demo note first so it gets [PATIENT_01], [LOC_01], ... as in section 12.
+[...DEMO_SPECS, ...DISCHARGE_SPECS, ...MEDREC_SPECS].forEach(pseudonymFor);
+
+const isWordChar =(c: string | undefined) => !!c && /[\p{L}\p{N}]/u.test(c);
+
+// Finds every occurrence of every spec, longest first, skipping overlaps.
+const findFlags = (text: string, specs: Spec[]): Flag[] => {
+  const taken: [number, number][] = [];
+  const found: Omit<Flag, "flag_code">[] = [];
+  for (const spec of [...specs].sort((a, b) => b.text.length - a.text.length)) {
+    let from = 0;
+    for (let i = text.indexOf(spec.text, from); i !== -1; i = text.indexOf(spec.text, from)) {
+      const end = i + spec.text.length;
+      from = end;
+      if (isWordChar(text[i - 1]) || isWordChar(text[end])) continue;
+      if (taken.some(([a, b]) => i < b && end > a)) continue;
+      taken.push([i, end]);
+      found.push({
+        start_idx: i,
+        end_idx: end,
+        text: spec.text,
+        label: spec.label,
+        tier: spec.tier,
+        reason: spec.reason,
+        masked: spec.tier !== "low",
+        locked: spec.tier === "high",
+        pseudonym: pseudonymFor(spec),
+        source: spec.source,
+      });
+    }
+  }
+  return found
+    .sort((a, b) => a.start_idx - b.start_idx)
+    .map((f, i) => ({ ...f, flag_code: `F${i + 1}` }));
 };
 
-export const SAMPLE_DOCS = [dischargeSummary, medicationReview];
+const ALL_SPECS = [...DEMO_SPECS, ...DISCHARGE_SPECS, ...MEDREC_SPECS].filter(
+  (spec, i, all) => all.findIndex((o) => o.text === spec.text) === i,
+);
 
-export const entitiesOf = (doc: ScrubbedDoc) =>
-  doc.segments.filter((s): s is Entity => typeof s !== "string");
+// Stand-in for the detection pipeline: matches any value the mock knows about.
+export const detect = (text: string) => findFlags(text, ALL_SPECS);
 
-// Default masking decision per risk level.
-export const defaultMasked = (ent: Entity) => ent.risk !== "LOW";
+export const makeDoc = (
+  id: string,
+  title: string,
+  source: Doc["source"],
+  text: string,
+  createdAt: Date,
+  flags = detect(text),
+): Doc => ({
+  id,
+  title,
+  source,
+  original_text: text,
+  pseudonymized_text: null,
+  status: "needs_review",
+  created_at: createdAt.toISOString(),
+  flags,
+});
 
-// Canned Gemini replies for the mockup. Written in pseudonymized form,
-// exactly as Gemini would return them; the UI re-identifies them.
-export const CANNED_REPLIES: string[] = [
-  "[PATIENT_01] was admitted for [DIAGNOSIS_01] with [DIAGNOSIS_02]. Discharge medications are [DRUG_03] [DOSE_02] PO BID for anticoagulation and [DRUG_04] [DOSE_03] PO TID for 5 days to complete the antibiotic course.\n\nGiven an age of [AGE_90+] and a creatinine of [LAB_01], confirm the [DRUG_03] dose-reduction criteria are met before discharge.",
-  "No direct interaction between [DRUG_03] and [DRUG_04] is expected. [DRUG_02] was used for rate control in hospital but is not on the discharge list; consider confirming with [CLINICIAN_01] whether that was intended.",
-  "Across the loaded documents, [PATIENT_02] is on [DRUG_05], [DRUG_06] and [DRUG_07]. The HbA1c of [LAB_02] and missed evening doses suggest an adherence issue related to shift work rather than treatment failure.",
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000);
+
+// Documents already in the workspace when the app opens.
+export const seedDocs = (): Doc[] => [
+  makeDoc("doc-discharge", "Discharge summary, Apr 12", "pdf", DISCHARGE_TEXT, hoursAgo(26),
+    findFlags(DISCHARGE_TEXT, DISCHARGE_SPECS)),
+  makeDoc("doc-medrec", "Medication reconciliation", "pdf", MEDREC_TEXT, hoursAgo(98),
+    findFlags(MEDREC_TEXT, MEDREC_SPECS)),
 ];
