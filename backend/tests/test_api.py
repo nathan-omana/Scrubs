@@ -3,13 +3,15 @@ The section 10 API, checked against the frontend contract in lib/types.ts (Doc, 
 GLiNER and Gemini are faked. Run from the backend folder:   python -m tests.test_api
 """
 import io
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import app as app_module
 import config
 import gemini_client
+from pipeline.dates import shift_date
 from tests._util import run, use_fake_gliner
 from tests.pdf_factory import build_pdf
+from tests.samples import DEMO_NOTE
 
 NOTE = open("sample_note.txt").read()
 GLINER_PHRASES = {"Margaret Ellison": "person name", "bush pilot": "occupation", "Tofino": "city or town",
@@ -68,7 +70,10 @@ def check_doc(doc):
         assert f["locked"] == (f["tier"] == "high")
         assert not f["locked"] or f["masked"], "a locked flag must be masked"
         assert f["source"] in ("presidio", "model", "lexicon")
-        assert f["pseudonym"].startswith("[") and f["pseudonym"].endswith("]") and f["pseudonym"] != "[NAME]"
+        if f["label"] == "Date" and not f["pseudonym"].startswith("["):
+            assert f["pseudonym"] != f["text"], "a shifted date must differ from the real one"
+        else:
+            assert f["pseudonym"].startswith("[") and f["pseudonym"].endswith("]") and f["pseudonym"] != "[NAME]"
         prev_end = f["end_idx"]
 
 
@@ -253,9 +258,105 @@ def test_mapping_is_masked_flags_only():
     m = c.get(f"/documents/{doc['id']}/mapping").json
     assert m[flag(doc, "Margaret Ellison")["pseudonym"]] == "Margaret Ellison"
     assert "74-year-old" not in m.values()
-    assert all(k.startswith("[") for k in m)
+    dates = {f["pseudonym"] for f in doc["flags"] if f["label"] == "Date"}
+    assert all(k.startswith("[") or k in dates for k in m)
     assert c.get("/documents/doc-nope/mapping").status_code == 404
     assert c.post("/documents/doc-nope/finalize").status_code == 404
+
+
+# ---------- date shifting ----------
+
+def test_dates_are_shifted_not_tagged():
+    # CLAUDE.md section 12 note: "Sept 28" becomes a date moved by the session's offset.
+    c = client()
+    doc = new_doc(c, text=DEMO_NOTE)
+    check_doc(doc)
+    sept = flag(doc, "Sept 28")
+    assert sept["pseudonym"] == shift_date("Sept 28", app_module.DATE_OFFSET_DAYS)
+    assert -90 <= app_module.DATE_OFFSET_DAYS <= -20
+    out = c.post(f"/documents/{doc['id']}/finalize").json["pseudonymized_text"]
+    assert "Sept 28" not in out and sept["pseudonym"] in out
+    assert c.get(f"/documents/{doc['id']}/mapping").json[sept["pseudonym"]] == "Sept 28"
+
+
+def test_shifted_dates_keep_intervals():
+    c = client()
+    doc = new_doc(c, text="Admitted 2026-09-21. Discharged 2026-09-28. Seen again on 2026-10-12.")
+    days = [date.fromisoformat(flag(doc, d)["pseudonym"]) for d in ("2026-09-21", "2026-09-28", "2026-10-12")]
+    assert (days[1] - days[0]).days == 7 and (days[2] - days[1]).days == 14
+    assert days[0] == date(2026, 9, 21) + timedelta(app_module.DATE_OFFSET_DAYS)
+
+
+def test_unreadable_or_clashing_date_falls_back_to_a_tag():
+    assert app_module.date_pseudonym("Sept 28 at 10:00", "Sept 28 at 10:00") is None
+    old = app_module.DATE_OFFSET_DAYS
+    app_module.DATE_OFFSET_DAYS = -7       # 2026-09-28 would become 2026-09-21, a real date in the note
+    try:
+        c = client()
+        doc = new_doc(c, text="Pt Margaret Ellison seen 2026-09-21 and 2026-09-28 for cough.")
+        assert flag(doc, "2026-09-28")["pseudonym"].startswith("[DATE_")
+        assert flag(doc, "2026-09-21")["pseudonym"] == "2026-09-14"
+        c.post(f"/documents/{doc['id']}/finalize")
+        sent_to_gemini.clear()
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "What happened on 2026-09-28?"})
+        assert r.json["identifier_count"] == 0, r.json            # the leak check still passes
+        assert "2026-09-21" not in r.json["outbound_text"] and "2026-09-28" not in r.json["outbound_text"]
+    finally:
+        app_module.DATE_OFFSET_DAYS = old
+
+
+def test_same_day_in_other_formats_is_shifted_too():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text="Pt Margaret Ellison admitted September 21, 2026 and again on Sep 28. Seen 28 Sept.")
+    out = doc["pseudonymized_text"]
+    for raw in ["September 21", "Sep 28", "28 Sept"]:
+        assert raw not in out, (raw, out)
+    sep28 = shift_date("Sep 28", app_module.DATE_OFFSET_DAYS)
+    for q in ["what about september 28?", "and 28 Sept?", "Sept. 28th"]:
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": q})
+        assert r.json["identifier_count"] == 0, (q, r.json)
+        assert sep28 in sent_to_gemini[-1][1] and "28" not in sent_to_gemini[-1][1].replace(sep28, ""), sent_to_gemini[-1]
+
+
+def test_unrelated_dates_in_chat_are_left_alone():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text=DEMO_NOTE)
+    c.post("/chat", json={"document_ids": [doc["id"]], "message": "Book a visit on Oct 30"})
+    assert sent_to_gemini[-1][1] == "Book a visit on Oct 30"
+
+
+def test_shifted_day_written_another_way_in_the_note_falls_back_to_a_tag():
+    old = app_module.DATE_OFFSET_DAYS
+    app_module.DATE_OFFSET_DAYS = -7            # Sept 28 -> Sept 21, which the note mentions as "21 September"
+    try:
+        c = client()
+        doc = ready_doc(c, text="Pt Margaret Ellison seen 21 September and Sept 28.")
+        assert flag(doc, "Sept 28")["pseudonym"].startswith("[DATE_")
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Summarize"})
+        assert r.json["identifier_count"] == 0, r.json
+    finally:
+        app_module.DATE_OFFSET_DAYS = old
+
+
+def test_pain_scores_stay_and_bare_dates_still_shift():
+    c = client()
+    doc = ready_doc(c, text="Pt Margaret Ellison seen on 9/10 for follow-up. Pain 7/10 at rest, power 4/5.")
+    out = doc["pseudonymized_text"]
+    assert "Pain 7/10 at rest, power 4/5." in out, out
+    assert "9/10" not in out and flag(doc, "9/10")["pseudonym"] == shift_date("9/10", app_module.DATE_OFFSET_DAYS)
+
+
+def test_chat_sends_shifted_dates_only():
+    c = client()
+    sent_to_gemini.clear()
+    doc = ready_doc(c, text=DEMO_NOTE)
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "What happened on Sept 28?"})
+    assert r.json["identifier_count"] == 0, r.json
+    shifted = flag(doc, "Sept 28")["pseudonym"]
+    note, question = sent_to_gemini[-1]
+    assert "Sept 28" not in note + question and shifted in note and shifted in question
 
 
 # ---------- chat ----------
@@ -313,6 +414,61 @@ def test_leak_check_never_trips_on_its_own_hiding_step():
     out = tagging.pseudonymize(text, flags)
     assert app_module.leak_check(out, flags) == (0, "")
     assert app_module.leak_check(out + " Margaret Ellison", flags)[0] == 1   # a real leak still blocks
+
+
+OKAFOR_NOTE = ("Daniel Okafor, PHN 9487 312 652, seen by Dr. Priya Sandhu. Phone (604) 555-0187. "
+               "Mr. Okafor reports chest pain. Sandhu to follow up; call 604-555-0187.")
+OKAFOR_PHRASES = {"Daniel Okafor": "person name", "Dr. Priya Sandhu": "doctor"}
+
+
+def okafor_doc(c):
+    use_fake_gliner(OKAFOR_PHRASES)
+    doc = c.post("/documents", json={"title": "t", "text": OKAFOR_NOTE}).json
+    assert {"Daniel Okafor", "Dr. Priya Sandhu", "(604) 555-0187"} <= {f["text"] for f in doc["flags"]}, doc["flags"]
+    return c.post(f"/documents/{doc['id']}/finalize").json
+
+
+def test_name_and_number_variants_never_reach_gemini():
+    c = client()
+    doc = okafor_doc(c)
+    out = doc["pseudonymized_text"]
+    for secret in ["Okafor", "Daniel", "Sandhu", "Priya", "555-0187", "9487"]:
+        assert secret not in out, (secret, out)
+    for message in ["Summarize Mr. Okafor's case", "Patient Okafor, Daniel - summarize", "Was Dr. Sandhu involved?",
+                    "Call 604-555-0187", "Call 6045550187", "PHN 9487312652"]:
+        sent_to_gemini.clear()
+        r = c.post("/chat", json={"document_ids": [doc["id"]], "message": message})
+        assert r.status_code == 200 and r.json["identifier_count"] == 0, (message, r.json)
+        note, question = sent_to_gemini[-1]
+        for secret in ["okafor", "daniel", "sandhu", "6045550187", "555-0187", "9487312652"]:
+            assert secret not in (note + question).lower(), (message, question)
+
+
+def test_leak_check_catches_variants_but_not_its_own_output():
+    c = client()
+    doc = okafor_doc(c)
+    flags = app_module.DOCS[doc["id"]]["flags"]
+    assert app_module.leak_check(doc["pseudonymized_text"], flags) == (0, "")
+    for leak in ["Mr. Okafor", "okafor's", "6045550187", "604 555 0187"]:
+        assert app_module.leak_check(doc["pseudonymized_text"] + " " + leak, flags)[0] >= 1, leak
+
+
+def test_blocked_reason_keeps_upper_case_kinds():
+    c = client()
+    doc = okafor_doc(c)
+    r = c.post("/chat", json={"document_ids": [doc["id"]], "message": "Also add PHN 9123 947 241."})
+    assert r.json["identifier_count"] == 1 and "PHN" in r.json["blocked_reason"], r.json
+    flags = app_module.DOCS[doc["id"]]["flags"]
+    reason = app_module.leak_check("Daniel Okafor", flags)[1]
+    assert reason[0].isdigit() and "masked value" in reason and "(Person)" in reason, reason
+
+
+def test_rule_address_and_license_are_locked_high():
+    c = client()
+    doc = new_doc(c, text="Pt lives at 4820 Marine Ave. Rx signed, CPSBC #34567.")
+    for value, label in [("4820 Marine Ave", "Address"), ("34567", "License")]:
+        f = next(f for f in doc["flags"] if f["text"].startswith(value))
+        assert f["label"] == label and f["tier"] == "high" and f["locked"] and f["source"] == "presidio", f
 
 
 def test_chat_requires_finalized_documents():
