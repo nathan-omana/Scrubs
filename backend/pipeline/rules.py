@@ -15,7 +15,7 @@ import tldextract
 # that ships with the library instead.
 tldextract.tldextract.TLD_EXTRACTOR = tldextract.TLDExtract(suffix_list_urls=())
 
-from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer  # noqa: E402
+from presidio_analyzer import AnalyzerEngine, EntityRecognizer, Pattern, PatternRecognizer, RecognizerResult  # noqa: E402
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
 import config
@@ -51,6 +51,47 @@ class BCPHNRecognizer(PatternRecognizer):
         return is_valid_phn(pattern_text)
 
 
+# ---------- MRN (Medical Record Number) ----------
+class MRNRecognizer(EntityRecognizer):
+    """Flags the digit portion of MRN annotations, e.g. '9482-110' in 'MRN: 9482-110'."""
+    _RE = re.compile(r"\bMRN[\s:#-]*(\d[\d -]{2,9}\d)\b", re.IGNORECASE)
+
+    def __init__(self):
+        super().__init__(supported_entities=["MRN"], name="MRNRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [
+            RecognizerResult("MRN", m.start(1), m.end(1), 0.9)
+            for m in self._RE.finditer(text)
+        ]
+
+
+# ---------- Context-aware date recognizer ----------
+class ContextDateRecognizer(EntityRecognizer):
+    """
+    Flags dates that follow explicit date-context labels (DOB, Date of Service, Date of Birth).
+    Presidio's built-in DATE_TIME can miss these when confidence is borderline.
+    """
+    _RE = re.compile(
+        r"\b(?:DOB|Date\s+of\s+(?:Service|Birth))[\s:]+([A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}"
+        r"|\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})",
+        re.IGNORECASE,
+    )
+
+    def __init__(self):
+        super().__init__(supported_entities=["DATE_TIME"], name="ContextDateRecognizer")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts=None):
+        return [
+            RecognizerResult("DATE_TIME", m.start(1), m.end(1), 0.95)
+            for m in self._RE.finditer(text)
+        ]
+
+
 # Presidio logs at INFO level (noisy, and debug logs could include text). Errors only.
 logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 
@@ -62,6 +103,8 @@ _nlp = NlpEngineProvider(nlp_configuration={
 
 analyzer = AnalyzerEngine(nlp_engine=_nlp, supported_languages=["en"])
 analyzer.registry.add_recognizer(BCPHNRecognizer())
+analyzer.registry.add_recognizer(MRNRecognizer())
+analyzer.registry.add_recognizer(ContextDateRecognizer())
 
 # Canadian postal code, e.g. "V0R 2Z0". (First letter can't be D, F, I, O, Q, U, W, Z.)
 analyzer.registry.add_recognizer(PatternRecognizer(
