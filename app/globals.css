@@ -160,12 +160,6 @@ p {
   gap: var(--space-5);
   font-size: var(--text-md);
 }
-.masthead__user {
-  color: var(--masthead-muted);
-  border-left: 1px solid var(--masthead-muted);
-  padding-left: var(--space-5);
-  white-space: nowrap;
-}
 .masthead__link {
   background: none;
   border: 0;
@@ -1093,9 +1087,6 @@ p {
   .container {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
-  }
-  .masthead__user {
-    display: none;
   }
   .steps__item {
     font-size: var(--text-sm);

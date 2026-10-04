@@ -35,7 +35,6 @@ export default function Shell({ step, enabled, onSelect, title, subtitle, alert,
           </div>
           <div className="masthead__right">
             <HowItWorks />
-            <span className="masthead__user">Dr. A. Singh · Hope Family Clinic</span>
           </div>
         </div>
       </header>
