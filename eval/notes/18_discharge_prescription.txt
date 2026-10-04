@@ -1,0 +1,11 @@
+DISCHARGE PRESCRIPTION
+Patient: Leilani Kahale   DOB: 1988-11-02   PHN: 9616 987 169
+Procedure: laparoscopic cholecystectomy on Sept 16, 2026
+
+Rx:
+1. enoxaparin 40 mg SC daily for 10 days
+2. acetaminophen 1 g PO QID PRN
+3. oxycodone 5 mg PO q6h PRN, 10 tablets
+
+Prescriber: Dr. Anders Holm, CPSBC # 29874
+Date: Sept 18, 2026

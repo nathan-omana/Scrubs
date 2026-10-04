@@ -1,0 +1,107 @@
+[
+ {
+  "start": 38,
+  "end": 57,
+  "label": "Person",
+  "tier": "high",
+  "text": "Mr. Harold Bjornson"
+ },
+ {
+  "start": 59,
+  "end": 61,
+  "label": "Age",
+  "tier": "med",
+  "text": "93"
+ },
+ {
+  "start": 131,
+  "end": 158,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Shuswap Lodge in Salmon Arm"
+ },
+ {
+  "start": 163,
+  "end": 170,
+  "label": "Date",
+  "tier": "med",
+  "text": "Sept 30"
+ },
+ {
+  "start": 175,
+  "end": 194,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Parkinson's disease"
+ },
+ {
+  "start": 196,
+  "end": 207,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "CKD stage 3"
+ },
+ {
+  "start": 209,
+  "end": 235,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "Former mayor of Salmon Arm"
+ },
+ {
+  "start": 322,
+  "end": 335,
+  "label": "Drug",
+  "tier": "low",
+  "text": "hydromorphone"
+ },
+ {
+  "start": 336,
+  "end": 351,
+  "label": "Dose",
+  "tier": "low",
+  "text": "1 mg PO q4h PRN"
+ },
+ {
+  "start": 358,
+  "end": 366,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "delirium"
+ },
+ {
+  "start": 378,
+  "end": 388,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Hgb 94 g/L"
+ },
+ {
+  "start": 390,
+  "end": 397,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Sinemet"
+ },
+ {
+  "start": 398,
+  "end": 416,
+  "label": "Dose",
+  "tier": "low",
+  "text": "100/25 one tab QID"
+ },
+ {
+  "start": 457,
+  "end": 463,
+  "label": "Person",
+  "tier": "high",
+  "text": "Ingrid"
+ },
+ {
+  "start": 465,
+  "end": 477,
+  "label": "Phone",
+  "tier": "high",
+  "text": "604-555-0122"
+ }
+]

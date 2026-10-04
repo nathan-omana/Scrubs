@@ -1,0 +1,93 @@
+[
+ {
+  "start": 20,
+  "end": 30,
+  "label": "Date",
+  "tier": "med",
+  "text": "09/30/2026"
+ },
+ {
+  "start": 39,
+  "end": 56,
+  "label": "Person",
+  "tier": "high",
+  "text": "SANTOS, MIGUEL A."
+ },
+ {
+  "start": 63,
+  "end": 86,
+  "label": "Address",
+  "tier": "high",
+  "text": "Unit 4, 2290 Fraser Hwy"
+ },
+ {
+  "start": 88,
+  "end": 98,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Abbotsford"
+ },
+ {
+  "start": 99,
+  "end": 106,
+  "label": "Address",
+  "tier": "high",
+  "text": "V2T 3K5"
+ },
+ {
+  "start": 111,
+  "end": 125,
+  "label": "Phone",
+  "tier": "high",
+  "text": "(604) 555-0158"
+ },
+ {
+  "start": 131,
+  "end": 150,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "diabetic foot ulcer"
+ },
+ {
+  "start": 159,
+  "end": 163,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "MRSA"
+ },
+ {
+  "start": 179,
+  "end": 194,
+  "label": "Drug",
+  "tier": "low",
+  "text": "silver alginate"
+ },
+ {
+  "start": 213,
+  "end": 224,
+  "label": "Drug",
+  "tier": "low",
+  "text": "doxycycline"
+ },
+ {
+  "start": 225,
+  "end": 235,
+  "label": "Dose",
+  "tier": "low",
+  "text": "100 mg BID"
+ },
+ {
+  "start": 250,
+  "end": 270,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "Wound swab grew MRSA"
+ },
+ {
+  "start": 282,
+  "end": 350,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "the foreman who runs the seasonal crew at a Sumas Prairie berry farm"
+ }
+]
