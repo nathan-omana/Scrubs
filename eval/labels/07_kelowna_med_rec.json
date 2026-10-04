@@ -1,0 +1,142 @@
+[
+ {
+  "start": 28,
+  "end": 52,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Kelowna General Hospital"
+ },
+ {
+  "start": 62,
+  "end": 73,
+  "label": "Person",
+  "tier": "high",
+  "text": "Priya Raman"
+ },
+ {
+  "start": 80,
+  "end": 87,
+  "label": "MRN",
+  "tier": "high",
+  "text": "6620417"
+ },
+ {
+  "start": 101,
+  "end": 111,
+  "label": "Date",
+  "tier": "med",
+  "text": "2026-09-21"
+ },
+ {
+  "start": 168,
+  "end": 175,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Allegra"
+ },
+ {
+  "start": 176,
+  "end": 188,
+  "label": "Dose",
+  "tier": "low",
+  "text": "180 mg daily"
+ },
+ {
+  "start": 191,
+  "end": 197,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Lyrica"
+ },
+ {
+  "start": 198,
+  "end": 207,
+  "label": "Dose",
+  "tier": "low",
+  "text": "75 mg BID"
+ },
+ {
+  "start": 210,
+  "end": 218,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Celebrex"
+ },
+ {
+  "start": 219,
+  "end": 231,
+  "label": "Dose",
+  "tier": "low",
+  "text": "200 mg daily"
+ },
+ {
+  "start": 256,
+  "end": 262,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Ativan"
+ },
+ {
+  "start": 263,
+  "end": 280,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.5 mg SL qHS PRN"
+ },
+ {
+  "start": 283,
+  "end": 291,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Florinef"
+ },
+ {
+  "start": 292,
+  "end": 304,
+  "label": "Dose",
+  "tier": "low",
+  "text": "0.1 mg daily"
+ },
+ {
+  "start": 309,
+  "end": 332,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "orthostatic hypotension"
+ },
+ {
+  "start": 360,
+  "end": 378,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "fibromyalgia flare"
+ },
+ {
+  "start": 384,
+  "end": 391,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "syncope"
+ },
+ {
+  "start": 405,
+  "end": 422,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Neil Chambers"
+ },
+ {
+  "start": 443,
+  "end": 448,
+  "label": "License",
+  "tier": "high",
+  "text": "38211"
+ },
+ {
+  "start": 464,
+  "end": 473,
+  "label": "Person",
+  "tier": "high",
+  "text": "Grace Liu"
+ }
+]

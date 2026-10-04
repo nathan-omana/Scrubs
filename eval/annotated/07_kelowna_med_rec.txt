@@ -1,0 +1,13 @@
+MEDICATION RECONCILIATION - [[Kelowna General Hospital|Location description]]
+Patient: [[Priya Raman|Person]]   MRN [[6620417|MRN]]   Admit date [[2026-09-21|Date]]
+
+Home medications (verified with community pharmacy):
+- [[Allegra|Drug]] [[180 mg daily|Dose]]
+- [[Lyrica|Drug]] [[75 mg BID|Dose]]
+- [[Celebrex|Drug]] [[200 mg daily|Dose]], hold while inpatient
+- [[Ativan|Drug]] [[0.5 mg SL qHS PRN|Dose]]
+- [[Florinef|Drug]] [[0.1 mg daily|Dose]] for [[orthostatic hypotension|Diagnosis]]
+
+Indication for admission: [[fibromyalgia flare|Diagnosis]] with [[syncope|Diagnosis]].
+Prescriber: [[Dr. Neil Chambers|Person]] (MSP practitioner # [[38211|License]])
+Reconciled by [[Grace Liu|Person]], RPh

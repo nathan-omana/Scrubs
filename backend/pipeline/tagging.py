@@ -6,6 +6,8 @@ restore() is the same logic in Python, for demo.py and the tests, and as a refer
 """
 import re
 
+import config
+
 # Titles are stripped before lookup, so "Mrs. Park" and "Park" can share one pseudonym later.
 _TITLES = re.compile(r"^(mr|mrs|ms|miss|mx|dr|doctor|prof)\.?\s+", re.IGNORECASE)
 
@@ -46,7 +48,7 @@ def pseudonymize(text: str, flags: list[dict]) -> str:
     taken = [(s, e) for s, e, _ in edits]
     for f in masked:
         value = f["text"].strip()
-        if len(value) < 3:                       # skip tiny values like "Al" to avoid nonsense matches
+        if len(value) < config.MIN_REPEAT_CHARS:  # tiny values like "Al" or "2": flagged spot only
             continue
         # (?<!\w) / (?!\w) instead of \b: \b needs a letter or digit at the edge, so a value
         # that starts with "(" like "(250) 555-0142" would never match and its repeats would leak.

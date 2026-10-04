@@ -1,0 +1,32 @@
+{
+ "_comment": "CLAUDE.md section 13. Krish may tune on the tuning set. Nobody tunes on the test set, and the pitch number comes only from the test set.",
+ "tuning": [
+  "01_demo_visit_note",
+  "02_tofino_soap",
+  "03_kamloops_discharge",
+  "04_hope_referral_letter",
+  "05_salmon_arm_handoff"
+ ],
+ "test": [
+  "06_lillooet_triage",
+  "07_kelowna_med_rec",
+  "08_nelson_mental_health",
+  "09_squamish_well_child",
+  "10_merritt_palliative",
+  "11_prince_rupert_phone",
+  "12_victoria_prenatal",
+  "13_penticton_physio",
+  "14_fort_st_james_rounds",
+  "15_whistler_gi_consult",
+  "16_delta_lab_results",
+  "17_bella_coola_outreach",
+  "18_discharge_prescription",
+  "19_revelstoke_crisis",
+  "20_grand_forks_geriatrics",
+  "21_email_referral",
+  "22_lumby_ltc_night",
+  "23_mackenzie_oat",
+  "24_cardiology_reply",
+  "25_abbotsford_home_health"
+ ]
+}

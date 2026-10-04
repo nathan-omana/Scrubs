@@ -221,11 +221,14 @@ def leak_check(outbound: str, flags: list[dict]) -> tuple[int, str]:
     (count, reason): how many masked original values (whole word, any case) are still in the
     outbound text, plus 1 for a raw PHN or email anywhere. The reason names KINDS only
     ("Person, PHN"), never the values, because it is shown on screen and may be logged.
+    It checks exactly the values pseudonymize() replaces everywhere (config.MIN_REPEAT_CHARS),
+    so its own hiding step can never trip it.
     """
     leaked: dict[str, str] = {}                                   # value -> label
     for f in flags:
         v = f["text"].strip().lower()
-        if f["masked"] and v and re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE):
+        if (f["masked"] and len(v) >= config.MIN_REPEAT_CHARS
+                and re.search(r"(?<!\w)" + re.escape(v) + r"(?!\w)", outbound, re.IGNORECASE)):
             leaked.setdefault(v, f["label"])
     reasons = []
     if leaked:

@@ -1,0 +1,4 @@
+Emergency psychiatry note, [[Queen Victoria Hospital|Location description]]
+
+[[Riley Gauthier|Person]], 41, [[a conservation officer stationed in Revelstoke|Unique role]], was brought in by partner [[Dana|Person]] on [[Oct 1|Date]] after an intentional overdose of [[zopiclone|Drug]], about [[15 tablets of 7.5 mg|Dose]]. [[Acetaminophen level undetectable|Lab value]]. Reports [[suicidal ideation|Diagnosis]] after a workplace inquiry. History of [[PTSD|Diagnosis]].
+Plan: admit under Section 22, 1:1 observation, restart [[prazosin|Drug]] [[2 mg qHS|Dose]].

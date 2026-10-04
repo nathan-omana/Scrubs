@@ -1,0 +1,121 @@
+[
+ {
+  "start": 34,
+  "end": 51,
+  "label": "Person",
+  "tier": "high",
+  "text": "Ms. Fatima Haddad"
+ },
+ {
+  "start": 62,
+  "end": 69,
+  "label": "MRN",
+  "tier": "high",
+  "text": "5520184"
+ },
+ {
+  "start": 91,
+  "end": 108,
+  "label": "Person",
+  "tier": "high",
+  "text": "Dr. Paul Beaulieu"
+ },
+ {
+  "start": 110,
+  "end": 125,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Crohn's disease"
+ },
+ {
+  "start": 143,
+  "end": 149,
+  "label": "Drug",
+  "tier": "low",
+  "text": "Humira"
+ },
+ {
+  "start": 150,
+  "end": 172,
+  "label": "Dose",
+  "tier": "low",
+  "text": "40 mg SC every 2 weeks"
+ },
+ {
+  "start": 179,
+  "end": 194,
+  "label": "Diagnosis",
+  "tier": "low",
+  "text": "Graves' disease"
+ },
+ {
+  "start": 209,
+  "end": 220,
+  "label": "Drug",
+  "tier": "low",
+  "text": "methimazole"
+ },
+ {
+  "start": 221,
+  "end": 232,
+  "label": "Dose",
+  "tier": "low",
+  "text": "10 mg daily"
+ },
+ {
+  "start": 241,
+  "end": 252,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "CRP 38 mg/L"
+ },
+ {
+  "start": 257,
+  "end": 284,
+  "label": "Lab value",
+  "tier": "low",
+  "text": "fecal calprotectin 620 ug/g"
+ },
+ {
+  "start": 320,
+  "end": 329,
+  "label": "Unique role",
+  "tier": "med",
+  "text": "head chef"
+ },
+ {
+  "start": 333,
+  "end": 351,
+  "label": "Employer",
+  "tier": "med",
+  "text": "Alpine Crest Lodge"
+ },
+ {
+  "start": 355,
+  "end": 363,
+  "label": "Location description",
+  "tier": "med",
+  "text": "Whistler"
+ },
+ {
+  "start": 397,
+  "end": 407,
+  "label": "Drug",
+  "tier": "low",
+  "text": "budesonide"
+ },
+ {
+  "start": 408,
+  "end": 418,
+  "label": "Dose",
+  "tier": "low",
+  "text": "9 mg daily"
+ },
+ {
+  "start": 435,
+  "end": 441,
+  "label": "Date",
+  "tier": "med",
+  "text": "Nov 14"
+ }
+]
