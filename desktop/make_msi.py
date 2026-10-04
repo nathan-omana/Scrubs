@@ -78,8 +78,8 @@ PRODUCT_WXS = f"""<?xml version="1.0" encoding="UTF-8"?>
 
 
 def run(tool: str, *args: str) -> None:
-    cmd = [str(WIX / tool), "-nologo", *args]
-    print(" ".join(cmd[:3]), "...", flush=True)
+    cmd = [str(WIX / tool), *args, "-nologo"]   # heat needs its harvest type ("dir") first
+    print(tool, args[0] if args else "", "...", flush=True)
     subprocess.run(cmd, check=True)
 
 
