@@ -4,18 +4,26 @@ The full project spec is in [CLAUDE.md](CLAUDE.md). Read it before writing code.
 
 ## Git history was rewritten on Oct 5, 2026
 
-Krish's old commit email (`krishkaushk@cs.sfu.ca`) was changed to `krish.z.kaushik@gmail.com` in every commit. That gave every commit, on every branch, a new ID. The code did not change. A clone made before Oct 5 still has the old IDs, and merging or pushing from it brings the old commits back as duplicates.
+History was rewritten twice on Oct 5. The code did not change either time, but commit IDs did:
+
+1. Krish's old commit email (`krishkaushk@cs.sfu.ca`) was changed to `krish.z.kaushik@gmail.com` in every commit, on every branch.
+2. Later that day, the commits authored by Claude on `main` were moved to Armin, and their Claude co-author lines were removed. That changed the IDs of most of `main` again. Every other branch was then deleted from GitHub (all were already merged into `main`). Start new work from `main`.
+
+A clone made before either rewrite still has old IDs, and merging or pushing from it brings the old commits back as duplicates.
 
 ### Step 1: check whether this clone is old
 
-Run this BEFORE any `git pull`, `git fetch`, `git merge` or `git push`:
+Run both BEFORE any `git pull`, `git fetch`, `git merge` or `git push`:
 
 ```
 git log --all --format='%ae %ce' | grep -c 'krishkaushk@cs.sfu.ca'
+git rev-list --all | grep -c '^36fa9fcacef2c0b1eb1626f3c02cf1705949859b$'
 ```
 
-- `0`: this clone is up to date. Ignore the rest of this section.
-- More than `0`: this clone is old. Do not pull, merge or push. Do steps 2 to 6, in order.
+The second command looks for one commit that only exists in history from before the second rewrite.
+
+- Both print `0`: this clone is up to date. Ignore the rest of this section.
+- Either prints more than `0`: this clone is old. Do not pull, merge or push. Do steps 2 to 6, in order.
 
 ### Step 2: save everything (before fetching)
 
@@ -69,9 +77,10 @@ git stash pop
 
 ```
 git log --format='%ae %ce' $(git for-each-ref --format='%(refname:short)' refs/heads | grep -v -e '^backup/' -e '^oldbase/') | grep -c 'krishkaushk@cs.sfu.ca'
+git branch --contains 36fa9fcacef2c0b1eb1626f3c02cf1705949859b | grep -v -e 'backup/' -e 'oldbase/' | grep -c .
 ```
 
-Must print `0`. Show the user the result and the output of `git status`. Only after the user confirms everything looks right:
+Both must print `0`. Show the user the result and the output of `git status`. Only after the user confirms everything looks right:
 
 ```
 git for-each-ref --format='%(refname:short)' 'refs/heads/backup/' 'refs/heads/oldbase/' | xargs git branch -D
@@ -80,5 +89,5 @@ git for-each-ref --format='%(refname:short)' 'refs/heads/backup/' 'refs/heads/ol
 ### Never
 
 - Never `git pull` or `git merge` in a clone where step 1 printed more than `0`.
-- Never push a branch that contains a commit with `krishkaushk@cs.sfu.ca`.
+- Never push a branch that contains a commit with `krishkaushk@cs.sfu.ca`, or that contains commit `36fa9fcacef2c0b1eb1626f3c02cf1705949859b`.
 - Never merge a pull request that adds dozens of commits already on `main`. That is old history coming back.
