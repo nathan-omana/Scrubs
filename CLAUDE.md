@@ -4,6 +4,8 @@ The shared source of truth for the whole team. Read it before writing code and f
 
 **Updated Oct 4, ~1 AM:** merged with Krish's backend work. Section 0.1 lists what changed and why.
 
+**Git history was rewritten on Oct 5, 2026.** Krish's commit email was corrected, so every commit ID changed. Before any `git pull`, `git merge` or `git push`, run `git log --all --format='%ae %ce' | grep -c 'krishkaushk@cs.sfu.ca'`. If it prints more than `0`, this clone is old: do not pull, merge or push, and follow every step in the "Git history was rewritten" section of [AGENTS.md](AGENTS.md) first.
+
 ---
 
 ## 0. Team, deadlines, lanes

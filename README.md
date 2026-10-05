@@ -4,7 +4,7 @@ Clinicians already paste patient notes into chatbots to write letters and summar
 
 You upload a PDF or paste a note. Scrubs flags the identifiers, you check them, and the ones you mask are swapped for placeholders like `[PATIENT_01]`. Only that version goes to Gemini. When the answer comes back, the real names are put back in on your screen.
 
-We built it at StormHacks 2026 (Armin, Felix, Krish and Nathan). Every document in this repo is made up. Don't put real patient data in it.
+We built it at StormHacks 2026 (Armin, Felix, Krish and Nathan).
 
 ## How it works
 
@@ -61,14 +61,14 @@ It runs on http://localhost:3000. To try the frontend with sample data and no ba
 | `backend/` | Flask API, with the detection code in `backend/pipeline/` |
 | `desktop/` | Windows app and MSI build, see [desktop/README.md](desktop/README.md) |
 | `eval/` | Synthetic test notes and `eval/run.py`, which scores default Presidio against our pipeline, see [eval/README.md](eval/README.md) |
-| `data/` | BC lexicon and sample PDFs |
+| `data/` | Seed copy of the sensitive terms database, and sample PDFs |
 | `CLAUDE.md` | The full project spec |
 
 ## Sponsor tracks
 
 - Gemini API runs the chat, and only ever sees masked text.
-- TiDB holds the BC lexicon. The app downloads it read-only and matches against it locally.
-- Snowflake stores the audit log of mask and unmask decisions. It holds counts, never document text.
+- TiDB holds a database of known sensitive terms that are easy to miss or ambiguous, like small towns, facilities and identifying job titles. The app downloads it read-only and matches against it locally.
+- Python: the whole backend is Python, including detection (Presidio, GLiNER), masking, date shifting and the Flask API.
 
 ## Limits
 
